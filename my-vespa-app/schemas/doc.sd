@@ -1,0 +1,41 @@
+schema doc {
+    document doc {
+        field id type string {
+            indexing: summary | attribute
+        }
+        field source_file type string {
+            indexing: summary | attribute
+        }
+        field heading type string {
+            indexing: summary | attribute
+        }
+        field body type string {
+            indexing: summary | index
+            index: enable-bm25
+        }
+        field embedding type tensor<float>(x[1024]) {
+            indexing: summary | attribute
+            attribute {
+                distance-metric: angular
+            }
+        }
+    }
+
+    rank-profile semantic inherits default {
+        inputs {
+            query(q) tensor<float>(x[1024])
+        }
+        first-phase {
+            expression: closeness(field, embedding)
+        }
+    }
+
+    rank-profile hybrid inherits default {
+        inputs {
+            query(q) tensor<float>(x[1024])
+        }
+        first-phase {
+            expression: closeness(field, embedding) + 0.3 * bm25(body)
+        }
+    }
+}
