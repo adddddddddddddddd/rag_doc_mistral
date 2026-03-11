@@ -8,6 +8,7 @@ Usage:
     python get_paths.py | xargs python index.py
 """
 
+import hashlib
 import sys
 from pathlib import Path
 
@@ -63,24 +64,40 @@ def main(include_folders=None, exclude_folders=None) -> None:
     if skipped:
         logging.info(f"\n⏭  Skipped {skipped} already-indexed file(s).")
 
+    # ── 3. Deduplicate chunks by body hash; merge headings when body is shared ─
+    body_to_chunk: dict[str, Chunk] = {}
+    for chunk in all_chunks:
+        body_hash = hashlib.sha256(chunk.body.encode()).hexdigest()
+        if body_hash not in body_to_chunk:
+            body_to_chunk[body_hash] = chunk
+        else:
+            existing = body_to_chunk[body_hash]
+            if chunk.heading not in existing.heading:
+                existing.heading = f"{existing.heading} / {chunk.heading}"
+    unique_chunks = list(body_to_chunk.values())
+    duplicates = len(all_chunks) - len(unique_chunks)
+    if duplicates:
+        logging.info(f"🔁 Merged {duplicates} duplicate chunk(s) into shared-body groups.")
+    all_chunks = unique_chunks
+
     if not all_chunks:
         logging.info("✅ Nothing new to index.")
         return
 
     logging.info(f"\n✂️  Total chunks: {len(all_chunks)}")
 
-    # ── 3. Embed all chunks ──────────────────────────────────────────────────
+    # ── 4. Embed all chunks ──────────────────────────────────────────────────
     logging.info("\n🔮 Generating embeddings via mistral-embed...")
     texts = [f"{c.heading}\n\n{c.body}" for c in all_chunks]
     embeddings = embed_texts(texts)
     logging.info(f"✅ Got {len(embeddings)} embeddings (dim={len(embeddings[0])})")
 
-    # ── 4. Deploy Vespa schema (idempotent) ──────────────────────────────────
+    # ── 5. Deploy Vespa schema (idempotent) ──────────────────────────────────
     logging.info("\n🏗️  Deploying Vespa application schema...")
     wait_for_vespa()
     deploy_app()
 
-    # ── 5. Feed into Vespa ───────────────────────────────────────────────────
+    # ── 6. Feed into Vespa ───────────────────────────────────────────────────
     feed_all(all_chunks, embeddings)
 
     logging.info(f"\n🎉 Done! {len(all_chunks)} chunks indexed from {len(paths)} file(s).")

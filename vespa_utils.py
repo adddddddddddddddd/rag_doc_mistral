@@ -9,8 +9,8 @@ import urllib.error
 from chunker import Chunk
 import fire
 
-VESPA_URL = "http://localhost:8080"
-VESPA_CONFIG_URL = "http://localhost:19071"
+VESPA_URL = "http://localhost:8081"
+VESPA_CONFIG_URL = "http://localhost:19072"
 APP_PATH = "my-vespa-app"
 NAMESPACE = "docs"
 DOC_TYPE = "doc"
@@ -182,4 +182,10 @@ def search(
     ]
     
 if __name__ == "__main__":
-    fire.Fire(search)
+    fire.Fire({
+        "deploy_app": deploy_app,
+        "wait_for_vespa": wait_for_vespa,
+        "feed_all": feed_all,
+        "file_already_indexed": file_already_indexed,
+        "search": search,
+    })

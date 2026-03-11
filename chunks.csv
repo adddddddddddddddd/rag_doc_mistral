@@ -80,6 +80,9 @@ We also provide the parameter `handoff_execution`, which currently has two modes
 
 - `server`: Runs the handoff as expected internally on our cloud servers; this is the default setting.
 - `client`: When a handoff is triggered, a response is provided directly to the user, enabling them to handle the handoff with control."
+"function_calling__9","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","The output of the agent creation is the agent object, which contains the agent ID, which we will use to start a conversation.
+
+<SectionTab as=""h1"" sectionId=""using-an-agent-with-function-calling"">Using an Agent</SectionTab>"
 "tools__0","platform-docs-public/public/agents/tools.md","Tools","---
 id: tools_overview
 title: Agents Tools Overview
@@ -115,9 +118,6 @@ Below is a list of the built-in tools currently available.
 |[Code Interpreter](tools/built-in/code_interpreter)| Can run code and generate plots, this is useful for data analysis, visualization or running code in a sandboxed environment.|
 |[Image Generation](tools/built-in/image_generation)| Generates images, this is useful for creating images based on a prompt or description.|
 |[Document Library](tools/built-in/document_library)| Provides access to read and search through a vast amount of documents, this is useful for finding information in documents or PDFs and perform RAG (Retrieval Augmented Generation) to answer questions based on very specific information.|"
-"function_calling__9","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","The output of the agent creation is the agent object, which contains the agent ID, which we will use to start a conversation.
-
-<SectionTab as=""h1"" sectionId=""using-an-agent-with-function-calling"">Using an Agent</SectionTab>"
 "mcp__19","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""remote-auth-step-1"">Step 1: Initialize the Mistral Client</SectionTab>
 
 First, we import everything needed. Most of the required modules are available with our `mistralai` package. All the MCP Clients will be run asynchronously, so we will create an async main function where the main code will reside."
@@ -217,6 +217,15 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
      ""description"": ""Agent used to answer financial related requests""
   }'
 ```"
+"document_library__21","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
+
+```bash
+curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents?page_size=100&page=0&sort_by=created_at&sort_order=desc"" \
+     --header ""Accept: application/json"" \
+     --header ""Authorization: Bearer $MISTRAL_API_KEY""
+```
+  </TabItem>
+</Tabs>"
 "function_calling__12","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<Tabs>
   <TabItem value=""python"" label=""python"">
 ```py
@@ -317,15 +326,6 @@ curl --location ""https://api.mistral.ai/v1/conversations/<conv_id>"" \
 ```
   </TabItem>
 </Tabs>"
-"document_library__21","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
-
-```bash
-curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents?page_size=100&page=0&sort_by=created_at&sort_order=desc"" \
-     --header ""Accept: application/json"" \
-     --header ""Authorization: Bearer $MISTRAL_API_KEY""
-```
-  </TabItem>
-</Tabs>"
 "websearch__13","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","</TabItem>
   <TabItem value=""output"" label=""output"">
 
@@ -397,10 +397,10 @@ curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents?pag
 ```
   </TabItem>
 </Tabs>"
-"document_library__66","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288, 2023.\n[27] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems, 30, 2017.\n[28] Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. Hellaswag: Can a machine really finish your sentence? arXiv preprint arXiv:1905.07830, 2019.\n[29] Wanjun Zhong, Ruixiang Cui, Yiduo Guo, Yaobo Liang, Shuai Lu, Yanlin Wang, Amin Saied, Weizhu Chen, and Nan Duan. Agieval: A human-centric benchmark for evaluating foundation models. arXiv preprint arXiv:2304.06364, 2023."""
 "code_interpreter__8","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","Now that we have our coding agent ready, we can at any point make use of it to run code.
 
 <SectionTab as=""h2"" variant=""secondary"" sectionId=""conversation-with-code-interpreter"">Conversations with Code Interpreter</SectionTab>"
+"document_library__66","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288, 2023.\n[27] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems, 30, 2017.\n[28] Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. Hellaswag: Can a machine really finish your sentence? arXiv preprint arXiv:1905.07830, 2019.\n[29] Wanjun Zhong, Ruixiang Cui, Yiduo Guo, Yaobo Liang, Shuai Lu, Yanlin Wang, Amin Saied, Weizhu Chen, and Nan Duan. Agieval: A human-centric benchmark for evaluating foundation models. arXiv preprint arXiv:2304.06364, 2023."""
 "image_generation__0","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","---
 id: image_generation
 title: Image Generation
@@ -423,6 +423,11 @@ You can use multiple Tools at the same time!
 "mcp__15","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""remote-step-2"">Step 2: Define Server URL and Create MCP Client</SectionTab>
 
 Next, we define the URL for the remote MCP server and create an MCP client to connect to it."
+"document_library__34","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","You can list and search documents in a library if required.
+
+<SectionTab as=""h3"" variant=""secondary"" sectionId=""status"">Status</SectionTab>
+
+After uploading a document, you can check the status while it is being processed."
 "mcp__5","platform-docs-public/public/agents/tools/mcp.md","MCP","```python
 #!/usr/bin/env python
 import asyncio
@@ -445,11 +450,6 @@ async def main() -> None:
     api_key = os.environ[""MISTRAL_API_KEY""]
     client = Mistral(api_key)
 ```"
-"document_library__34","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","You can list and search documents in a library if required.
-
-<SectionTab as=""h3"" variant=""secondary"" sectionId=""status"">Status</SectionTab>
-
-After uploading a document, you can check the status while it is being processed."
 "document_library__63","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Measuring massive multitask language understanding. arXiv preprint arXiv:2009.03300, 2020.\n[13] Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song, and Jacob Steinhardt. Measuring mathematical problem solving with the math dataset. arXiv preprint arXiv:2103.03874, 2021.\n[14] Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor Cai, Eliza Rutherford, Diego de Las Casas, Lisa Anne Hendricks, Johannes Welbl, Aidan Clark, Thomas Hennigan, Eric Noland, Katherine Millican, George van den Driessche, Bogdan Damoc, Aurelia Guy, Simon Osindero, Karén Simonyan, Erich Elsen, Oriol Vinyals, Jack Rae, and Laurent Sifre. An empirical analysis of compute-optimal large language model training. In Advances in Neural Information Processing Systems, volume 35, 2022.\n[15] Mandar Joshi, Eunsol Choi, Daniel S Weld, and Luke Zettlemoyer. Triviaqa: A large scale distantly supervised challenge dataset for reading comprehension. arXiv preprint arXiv:1705.03551, 2017.\n[16] Tom Kwiatkowski, Jennimaria Palomaki, Olivia Redfield, Michael Collins, Ankur Parikh, Chris Alberti, Danielle Epstein, Illia Polosukhin, Jacob Devlin, Kenton Lee, et al. Natural questions: a benchmark for question answering research. Transactions of the Association for Computational Linguistics, 7:453-466, 2019.[17] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E."
 "introduction__3","platform-docs-public/public/agents/introduction.md","What are AI agents?","<SectionTab sectionId=""cookbooks"">
   <span>Cookbooks</span>
@@ -507,12 +507,6 @@ You can extract the text content from any document that belongs to a library."
     ""completed_at"": null,
     ""id"": ""msg_0684fe1bc9057cbe8000753468b64f7d""
     },"
-"document_library__93","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","- **`tool.execution`**: This entry corresponds to the execution of the document library tool. It includes metadata about the execution, such as:
-  - `name`: The name of the tool, which in this case is `document_library`.
-  - `object`: The type of object, which is `entry`.
-  - `type`: The type of entry, which is `tool.execution`.
-  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
-  - `id`: A unique identifier for the tool execution."
 "handoffs__32","platform-docs-public/public/agents/handoffs.md","Handoffs","```bash
 curl --location ""https://api.mistral.ai/v1/conversations"" \
      --header 'Content-Type: application/json' \
@@ -530,17 +524,23 @@ curl --location ""https://api.mistral.ai/v1/conversations"" \
      ""agent_id"": ""<agent_id>""
   }'
 ```"
-"agents__15","platform-docs-public/public/agents/agents.md","Conversations","In the other hand, Conversations are a history of interactions with an assistant. They are more flexible and expressive than the Chat Completion API, allowing for more control over describing events.
-
-Once your agent is created, you can **start** conversations at any point while keeping the same conversation persistent. You first start a conversation by providing:
-- `agent_id`: The ID of the agent, created during the Agent creation.
-- `inputs`: The message to start the conversation with. It can be either a string with the first user message or question, or the history of messages."
+"document_library__93","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","- **`tool.execution`**: This entry corresponds to the execution of the document library tool. It includes metadata about the execution, such as:
+  - `name`: The name of the tool, which in this case is `document_library`.
+  - `object`: The type of object, which is `entry`.
+  - `type`: The type of entry, which is `tool.execution`.
+  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
+  - `id`: A unique identifier for the tool execution."
 "document_library__14","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<SectionTab as=""h2"" variant=""secondary"" sectionId=""library-creation"">Library Creation</SectionTab>
 
 You can create and manage new document libraries directly via our API.
 
 <Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>"
+"agents__15","platform-docs-public/public/agents/agents.md","Conversations","In the other hand, Conversations are a history of interactions with an assistant. They are more flexible and expressive than the Chat Completion API, allowing for more control over describing events.
+
+Once your agent is created, you can **start** conversations at any point while keeping the same conversation persistent. You first start a conversation by providing:
+- `agent_id`: The ID of the agent, created during the Agent creation.
+- `inputs`: The message to start the conversation with. It can be either a string with the first user message or question, or the history of messages."
 "image_generation__8","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","</TabItem>
 </Tabs>
 
@@ -576,6 +576,9 @@ As with other agents, when creating one, you will receive an agent ID correspond
     },
     {
     ""role"": ""user"","
+"document_library__92","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<SectionTab as=""h2"" variant=""secondary"" sectionId=""explanation-of-the-output"">Explanation of the Output</SectionTab>
+
+Below we will explain the different outputs of the response of the previous snippet example:"
 "code_interpreter__3","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","<Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>
 
@@ -593,9 +596,6 @@ code_agent = client.beta.agents.create(
 )
 ```
   </TabItem>"
-"document_library__92","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<SectionTab as=""h2"" variant=""secondary"" sectionId=""explanation-of-the-output"">Explanation of the Output</SectionTab>
-
-Below we will explain the different outputs of the response of the previous snippet example:"
 "agents__33","platform-docs-public/public/agents/agents.md","Conversations (cont.)","""presence_penalty"": null,
     ""frequency_penalty"": null,
     ""temperature"": 0.3,
@@ -676,6 +676,8 @@ Below we will explain the different outputs of the response of the previous snip
 },
 ]
 ```"
+"agents__48","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
+data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":"" European""}"
 "agents__13","platform-docs-public/public/agents/agents.md","Agent Creation and Management","<TabItem value=""curl"" label=""curl"">
 
 ```bash
@@ -687,9 +689,6 @@ curl --location ""https://api.mistral.ai/v1/agents/<agent_id>/version"" \
      ""version"": 0
   }'
 ```"
-"agents__48","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
-data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":"" European""}"
-"document_library__64","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model serving with pagedattention. In Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles, 2023.\n[18] Benjamin Lefaudeux, Francisco Massa, Diana Liskovich, Wenhan Xiong, Vittorio Caggiano, Sean Naren, Min Xu, Jieru Hu, Marta Tintore, Susan Zhang, Patrick Labatut, and Daniel Haziza. xformers: A modular and hackable transformer modelling library. https://github.com/ facebookresearch/xformers, 2022.\n[19] Todor Mihaylov, Peter Clark, Tushar Khot, and Ashish Sabharwal. Can a suit of armor conduct electricity? a new dataset for open book question answering. arXiv preprint arXiv:1809.02789, 2018.\n[20] Baptiste Rozière, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi, Jingyu Liu, Tal Remez, Jérémy Rapin, et al. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950, 2023.\n[21] Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi."
 "mcp__2","platform-docs-public/public/agents/tools/mcp.md","MCP","<Image
   url={['/img/mcp_graph.png', '/img/mcp_graph_dark.png']}
   alt=""mcp_graph""
@@ -700,102 +699,7 @@ data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9
 <SectionTab as=""h1"" sectionId=""mcp-client-usage"">MCP Client Usage</SectionTab>
 
 Our Python SDK enables seamless integration of our agents with MCP Clients."
-"websearch__6","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","<TabItem value=""curl"" label=""curl"">
-
-```bash
-curl --location ""https://api.mistral.ai/v1/agents"" \
-     --header 'Content-Type: application/json' \
-     --header 'Accept: application/json' \
-     --header ""Authorization: Bearer $MISTRAL_API_KEY"" \
-     --data '{
-     ""model"": ""mistral-medium-2505"",
-     ""name"": ""Websearch Agent"",
-     ""description"": ""Agent able to search information over the web, such as news, weather, sport results..."",
-     ""instructions"": ""You have the ability to perform web searches with `web_search` to find up-to-date information."",
-     ""tools"": [
-       {
-         ""type"": ""web_search""
-       }
-     ],
-     ""completion_args"": {
-       ""temperature"": 0.3,
-       ""top_p"": 0.95
-     }
-  }'
-```
-  </TabItem>
-  <TabItem value=""output"" label=""output"">"
-"handoffs__5","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
-
-<TabItem value=""typescript"" label=""typescript"">
-
-```typescript
-// First, let's make the following import
-
-//Then, we define and create our agents
-const CalcResult = z.object({
-  reasoning: z.string(),
-  result: z.string(),
-});
-
-let financeAgent = await client.beta.agents.create({
-  model: 'mistral-large-latest',
-  description: 'Agent used to answer financial related requests',
-  name: 'finance-agent',
-});
-
-let webSearchAgent = await client.beta.agents.create({
-  model: 'mistral-large-latest',
-  description: 'Agent that can search online for any information if needed',
-  name: 'websearch-agent',
-  tools: [{ type: 'web_search' }],
-});
-
-let ecbInterestRateAgent = await client.beta.agents.create({
-  model: 'mistral-large-latest',
-  description:
-    'Can find the current interest rate of the European central bank',
-  name: 'ecb-interest-rate-agent',
-  tools: [
-    {
-      type: 'function',
-      function: {
-        name: 'getEuropeanCentralBankInterestRate',
-        description:
-          'Retrieve the real interest rate of European central bank.',
-        parameters: {
-          type: 'object',
-          properties: {
-            date: {
-              type: 'string',
-            },
-          },
-          required: ['date'],
-        },
-      },
-    },
-  ],
-});
-
-const graphAgent = await client.beta.agents.create({
-  model: 'mistral-large-latest',
-  name: 'graph-drawing-agent',
-  description: 'Agent used to create graphs using the code interpreter tool.',
-  instructions: 'Use the code interpreter tool when you have to draw a graph.',
-  tools: [{ type: 'code_interpreter' }],
-});
-
-const calculatorAgent = await client.beta.agents.create({
-  model: 'mistral-large-latest',
-  name: 'calculator-agent',
-  description: 'Agent used to make detailed calculations',
-  instructions:
-    'When doing calculations explain step by step what you are doing.',
-  completionArgs: {
-    responseFormat: responseFormatFromZodObject(CalcResult),
-  },
-});
-```"
+"document_library__64","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large language model serving with pagedattention. In Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles, 2023.\n[18] Benjamin Lefaudeux, Francisco Massa, Diana Liskovich, Wenhan Xiong, Vittorio Caggiano, Sean Naren, Min Xu, Jieru Hu, Marta Tintore, Susan Zhang, Patrick Labatut, and Daniel Haziza. xformers: A modular and hackable transformer modelling library. https://github.com/ facebookresearch/xformers, 2022.\n[19] Todor Mihaylov, Peter Clark, Tushar Khot, and Ashish Sabharwal. Can a suit of armor conduct electricity? a new dataset for open book question answering. arXiv preprint arXiv:1809.02789, 2018.\n[20] Baptiste Rozière, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi, Jingyu Liu, Tal Remez, Jérémy Rapin, et al. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950, 2023.\n[21] Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi."
 "handoffs__25","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
 </Tabs>
 
@@ -882,6 +786,102 @@ let conversationHistory = await client.beta.conversations.getHistory({
 ```bash
 curl --location ""https://api.mistral.ai/v1/conversations/<conv_id>/history"" \
     --header 'Content-Type: application/json' \"
+"handoffs__5","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
+
+<TabItem value=""typescript"" label=""typescript"">
+
+```typescript
+// First, let's make the following import
+
+//Then, we define and create our agents
+const CalcResult = z.object({
+  reasoning: z.string(),
+  result: z.string(),
+});
+
+let financeAgent = await client.beta.agents.create({
+  model: 'mistral-large-latest',
+  description: 'Agent used to answer financial related requests',
+  name: 'finance-agent',
+});
+
+let webSearchAgent = await client.beta.agents.create({
+  model: 'mistral-large-latest',
+  description: 'Agent that can search online for any information if needed',
+  name: 'websearch-agent',
+  tools: [{ type: 'web_search' }],
+});
+
+let ecbInterestRateAgent = await client.beta.agents.create({
+  model: 'mistral-large-latest',
+  description:
+    'Can find the current interest rate of the European central bank',
+  name: 'ecb-interest-rate-agent',
+  tools: [
+    {
+      type: 'function',
+      function: {
+        name: 'getEuropeanCentralBankInterestRate',
+        description:
+          'Retrieve the real interest rate of European central bank.',
+        parameters: {
+          type: 'object',
+          properties: {
+            date: {
+              type: 'string',
+            },
+          },
+          required: ['date'],
+        },
+      },
+    },
+  ],
+});
+
+const graphAgent = await client.beta.agents.create({
+  model: 'mistral-large-latest',
+  name: 'graph-drawing-agent',
+  description: 'Agent used to create graphs using the code interpreter tool.',
+  instructions: 'Use the code interpreter tool when you have to draw a graph.',
+  tools: [{ type: 'code_interpreter' }],
+});
+
+const calculatorAgent = await client.beta.agents.create({
+  model: 'mistral-large-latest',
+  name: 'calculator-agent',
+  description: 'Agent used to make detailed calculations',
+  instructions:
+    'When doing calculations explain step by step what you are doing.',
+  completionArgs: {
+    responseFormat: responseFormatFromZodObject(CalcResult),
+  },
+});
+```"
+"websearch__6","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","<TabItem value=""curl"" label=""curl"">
+
+```bash
+curl --location ""https://api.mistral.ai/v1/agents"" \
+     --header 'Content-Type: application/json' \
+     --header 'Accept: application/json' \
+     --header ""Authorization: Bearer $MISTRAL_API_KEY"" \
+     --data '{
+     ""model"": ""mistral-medium-2505"",
+     ""name"": ""Websearch Agent"",
+     ""description"": ""Agent able to search information over the web, such as news, weather, sport results..."",
+     ""instructions"": ""You have the ability to perform web searches with `web_search` to find up-to-date information."",
+     ""tools"": [
+       {
+         ""type"": ""web_search""
+       }
+     ],
+     ""completion_args"": {
+       ""temperature"": 0.3,
+       ""top_p"": 0.95
+     }
+  }'
+```
+  </TabItem>
+  <TabItem value=""output"" label=""output"">"
 "document_library__31","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","```python
 if len(libraries) == 0:
     print(""No libraries found."")
@@ -970,16 +970,16 @@ tool_call_id='NqCFiwvSV' result='2.5%' object='conversation.entry' type='functio
 <SectionTab as=""h2"" variant=""secondary"" sectionId=""explanation-of-the-output"">Explanation of the Output</SectionTab>
 
 Below we will explain the different outputs of the response of the previous snippet example:"
-"agents__29","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
-</Tabs>
-  </ExplorerTab>
-  <ExplorerTab value=""continue"" label=""Continue"">
-    Once created, to continue the conversation you will simply provide the next user input, the history of events being stored by default."
 "agents__6","platform-docs-public/public/agents/agents.md","Agent Creation and Management","<SectionTab as=""h2"" variant=""secondary"" sectionId=""create-new-version"">Create a new Version</SectionTab>
 
 Create a new `version` of the Agent, will be used by default.
 <Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>"
+"agents__29","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
+</Tabs>
+  </ExplorerTab>
+  <ExplorerTab value=""continue"" label=""Continue"">
+    Once created, to continue the conversation you will simply provide the next user input, the history of events being stored by default."
 "agents__8","platform-docs-public/public/agents/agents.md","Agent Creation and Management","</TabItem>
 
 <TabItem value=""typescript"" label=""typescript"">
@@ -997,6 +997,8 @@ websearchAgent = await client.beta.agents.update({
 });
 ```
   </TabItem>"
+"agents__49","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
+data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":"" Football""}"
 "code_interpreter__9","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","To start a conversation with our code interpreter agent, we can use the following code:
 
 <Tabs groupId=""code"">
@@ -1009,8 +1011,6 @@ response = client.beta.conversations.start(
 )
 ```
   </TabItem>"
-"agents__49","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
-data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":"" Football""}"
 "mcp__23","platform-docs-public/public/agents/tools/mcp.md","MCP","```python
 async def main():
     # Initialize the Mistral client with your API key
@@ -1032,6 +1032,18 @@ async def main():
 "document_library__85","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","You can manage your libraries using the Mistral AI API, we recommend taking a look at the [API spec](https://docs.mistral.ai/api/#tag/beta.libraries.documents) for the details. Below are some examples of how to interact with libraries and documents.
   </ExplorerTab>
 </ExplorerTabs>"
+"document_library__79","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<Tabs groupId=""code"">
+  <TabItem value=""python"" label=""python"" default>
+
+```python
+access = client.beta.libraries.accesses.update_or_create(
+    library_id=new_library.id,
+    org_id=""<org_id>"",
+    level=""<level_type>"",
+    share_with_uuid=""<uuid>"",
+    share_with_type=""<account_type>""
+)
+```"
 "built-in__8","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","</TabItem>
     </Tabs>
   </TabItem>
@@ -1051,18 +1063,6 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
      ""instructions"": ""<instructions_or_system_prompt>"",
      ""tools"": [<list_of_tools>]
   }'
-```"
-"document_library__79","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<Tabs groupId=""code"">
-  <TabItem value=""python"" label=""python"" default>
-
-```python
-access = client.beta.libraries.accesses.update_or_create(
-    library_id=new_library.id,
-    org_id=""<org_id>"",
-    level=""<level_type>"",
-    share_with_uuid=""<uuid>"",
-    share_with_type=""<account_type>""
-)
 ```"
 "document_library__33","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
 
@@ -1105,9 +1105,6 @@ conversation = client.beta.conversations.restart(
   <TabItem value=""typescript"" label=""typescript"">
 
 ```typescript"
-"mcp__13","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""remote-step-1"">Step 1: Initialize the Mistral Client</SectionTab>
-
-First, we import everything needed. Most of the required modules are available with our `mistralai` package. All the MCP Clients will be run asynchronously, so we will create an async main function where the main code will reside."
 "mcp__14","platform-docs-public/public/agents/tools/mcp.md","MCP","```python
 #!/usr/bin/env python
 import asyncio
@@ -1127,6 +1124,9 @@ async def main():
     api_key = os.environ[""MISTRAL_API_KEY""]
     client = Mistral(api_key)
 ```"
+"mcp__13","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""remote-step-1"">Step 1: Initialize the Mistral Client</SectionTab>
+
+First, we import everything needed. Most of the required modules are available with our `mistralai` package. All the MCP Clients will be run asynchronously, so we will create an async main function where the main code will reside."
 "handoffs__31","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
 
 <TabItem value=""curl"" label=""curl"">
@@ -1142,9 +1142,6 @@ curl --location ""https://api.mistral.ai/v1/conversations"" \
      ""agent_id"": ""<agent_id>""
   }'
 ```"
-"websearch__9","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","Now that we have our websearch agent ready, we can at any point make use of it to ask it questions about recent events.
-
-<SectionTab as=""h2"" variant=""secondary"" sectionId=""conversation-with-websearch"">Conversations with Websearch</SectionTab>"
 "mcp__0","platform-docs-public/public/agents/tools/mcp.md","MCP","---
 id: mcp
 title: MCP
@@ -1155,6 +1152,9 @@ sidebar_position: 4
 # MCP
 
 The Model Context Protocol (MCP) is an open standard designed to **streamline the integration of AI models with various data sources and tools**. By providing a **standardized interface**, MCP enables seamless and secure connections, allowing AI systems to access and utilize contextual information efficiently. It simplifies the development process, making it easier to build robust and interconnected AI applications."
+"websearch__9","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","Now that we have our websearch agent ready, we can at any point make use of it to ask it questions about recent events.
+
+<SectionTab as=""h2"" variant=""secondary"" sectionId=""conversation-with-websearch"">Conversations with Websearch</SectionTab>"
 "agents__37","platform-docs-public/public/agents/agents.md","Conversations (cont.) (cont.)","<TabItem value=""curl"" label=""curl"">
 
 ```bash
@@ -1198,14 +1198,6 @@ response = client.beta.conversations.start(
 "mcp__8","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""local-step-3"">Step 3: Define Output Format and Create a Run Context</SectionTab>
 
 The next step is to create a Run Context where everything will happen between the MCP Client and our Agent. You can also leverage structured outputs!"
-"introduction__4","platform-docs-public/public/agents/introduction.md","What are AI agents?","<SectionTab sectionId=""faq"">FAQ</SectionTab>
-
-<Faq defaultValue={['price-per-image', 'tokens-per-image']}>
-<FaqItem question=""Which models are supported?"">
-
-Currently, only `mistral-medium-latest` and `mistral-large-latest` are supported, but we will soon enable it for more models.
-</FaqItem>
-</Faq>"
 "agents__41","platform-docs-public/public/agents/agents.md","Conversations (cont.) (cont.)","let newConversation = await client.beta.conversations.restart({
     conversationId: conversation.conversationId,
     conversationRestartRequest: {
@@ -1226,6 +1218,14 @@ curl --location ""https://api.mistral.ai/v1/conversations/<conv_id>/restart"" \
      --data '{
      ""from_entry_id"": ""<entry_id>"",
      ""inputs"": ""Translate to Portuguese."","
+"introduction__4","platform-docs-public/public/agents/introduction.md","What are AI agents?","<SectionTab sectionId=""faq"">FAQ</SectionTab>
+
+<Faq defaultValue={['price-per-image', 'tokens-per-image']}>
+<FaqItem question=""Which models are supported?"">
+
+Currently, only `mistral-medium-latest` and `mistral-large-latest` are supported, but we will soon enable it for more models.
+</FaqItem>
+</Faq>"
 "handoffs__19","platform-docs-public/public/agents/handoffs.md","Handoffs","Let’s trigger two different behaviors as examples:
 
 <ExplorerTabs id=""how-it-works"" groupId=""code"">
@@ -1288,6 +1288,18 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
      ""tools"": [{""type"": ""code_interpreter""}]
   }'
 ```"
+"introduction__2","platform-docs-public/public/agents/introduction.md","What are AI agents?","<SectionTab as=""h1"" variant=""secondary"" sectionId=""more-informations"">More informations</SectionTab>
+
+- [Agents & Conversations](../agents/agents): Basic explanations and code snippets around our Agents and Conversations API.
+- [Tools](../agents/tools): Make tools accessible to any Agent.
+  - [Built-In](../agents/tools/built-in): built-in tools that are available to all agents.
+    - [Websearch](../agents/tools/built-in/websearch): In-depth explanation of our web search built-in connector tool.
+    - [Code Interpreter](../agents/tools/built-in/code_interpreter): In-depth explanation of our code interpreter for code execution built-in connector tool.
+    - [Image Generation](../agents/tools/built-in/image_generation): In-depth explanation of our image generation built-in connector tool.
+    - [Document Library (Beta)](../agents/tools/built-in/document_library): A RAG built-in connector enabling Agents to access a library of documents.
+  - [Function Calling](../agents/tools/function_calling): Leverage function calling to create custom tools.
+  - [MCP](../agents/tools/mcp): Leverage MCP Servers to create custom tools or use third-party ones.
+- [Handoffs](../agents/handoffs): Relay tasks and use other agents as tools in agentic workflows."
 "code_interpreter__7","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","</TabItem>
 </Tabs>
 
@@ -1345,18 +1357,6 @@ As for other agents, when creating one you will receive an agent id correspondin
   ""object"": ""conversation.response""
 }
 ```"
-"introduction__2","platform-docs-public/public/agents/introduction.md","What are AI agents?","<SectionTab as=""h1"" variant=""secondary"" sectionId=""more-informations"">More informations</SectionTab>
-
-- [Agents & Conversations](../agents/agents): Basic explanations and code snippets around our Agents and Conversations API.
-- [Tools](../agents/tools): Make tools accessible to any Agent.
-  - [Built-In](../agents/tools/built-in): built-in tools that are available to all agents.
-    - [Websearch](../agents/tools/built-in/websearch): In-depth explanation of our web search built-in connector tool.
-    - [Code Interpreter](../agents/tools/built-in/code_interpreter): In-depth explanation of our code interpreter for code execution built-in connector tool.
-    - [Image Generation](../agents/tools/built-in/image_generation): In-depth explanation of our image generation built-in connector tool.
-    - [Document Library (Beta)](../agents/tools/built-in/document_library): A RAG built-in connector enabling Agents to access a library of documents.
-  - [Function Calling](../agents/tools/function_calling): Leverage function calling to create custom tools.
-  - [MCP](../agents/tools/mcp): Leverage MCP Servers to create custom tools or use third-party ones.
-- [Handoffs](../agents/handoffs): Relay tasks and use other agents as tools in agentic workflows."
 "mcp__10","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""local-step-4"">Step 4: Register MCP Client</SectionTab>
 
 The next step is to create and register the MCP Client.
@@ -1366,23 +1366,12 @@ The next step is to create and register the MCP Client.
         mcp_client = MCPClientSTDIO(stdio_params=server_params)
         await run_ctx.register_mcp_client(mcp_client=mcp_client)
 ```"
+"image_generation__2","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","To use the image generation tool, you can create an agent with the image generation tool enabled and leverage the conversations API to generate images, note that you need to download the image from the file ID provided in the response."
 "agents__20","platform-docs-public/public/agents/agents.md","Conversations","Below you can find examples of how to create and manage conversations.
 
 <ExplorerTabs id=""conversations"">
   <ExplorerTab value=""starting"" label=""Starting"">
     As previously mentionned, you can start a conversation at any given point with your custom Agent or with a specific model of your choice."
-"handoffs__3","platform-docs-public/public/agents/handoffs.md","Handoffs","<SectionTab as=""h2"" variant=""secondary"" sectionId=""create-multiple-agents"">Create Multiple Agents</SectionTab>
-
-<div style={{ textAlign: 'center' }}>
-  <img
-    src=""/img/multiple_agents_handoffs.png""
-    alt=""handoffs_graph""
-    width=""600""
-    style={{ borderRadius: '15px' }}
-    className='mx-auto' 
-  />
-</div>"
-"image_generation__2","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","To use the image generation tool, you can create an agent with the image generation tool enabled and leverage the conversations API to generate images, note that you need to download the image from the file ID provided in the response."
 "introduction__1","platform-docs-public/public/agents/introduction.md","What are AI agents?","<Image
   url={['/img/agent_overview.png', '/img/agent_overview_dark.png']}
   alt=""agents_graph""
@@ -1401,6 +1390,17 @@ Our Agents and Conversations API allows developers to build such agents, leverag
   - **Document Understanding**
   - **Tool Usage**
   - **Citations**"
+"handoffs__3","platform-docs-public/public/agents/handoffs.md","Handoffs","<SectionTab as=""h2"" variant=""secondary"" sectionId=""create-multiple-agents"">Create Multiple Agents</SectionTab>
+
+<div style={{ textAlign: 'center' }}>
+  <img
+    src=""/img/multiple_agents_handoffs.png""
+    alt=""handoffs_graph""
+    width=""600""
+    style={{ borderRadius: '15px' }}
+    className='mx-auto' 
+  />
+</div>"
 "function_calling__10","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","Then, to use it, we start a conversation or continue a previously existing one.
 
 <Tabs groupId=""code"">
@@ -1507,10 +1507,10 @@ response = client.beta.conversations.start(
 )
 ```
   </TabItem>"
+"document_library__18","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","When generated, the library will contain different kinds of information. This information is updated and generated when files are added. Specifically, `generated_name` and `generated_description` will be constantly updated and kept up to date."
 "document_library__2","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","It is a built-in RAG capability that enhances your agents' knowledge with the data you have uploaded.
 
 <SectionTab as=""h1"" sectionId=""agent-creation-and-library-management"">Agent Creation & Library Management</SectionTab>"
-"document_library__18","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","When generated, the library will contain different kinds of information. This information is updated and generated when files are added. Specifically, `generated_name` and `generated_description` will be constantly updated and kept up to date."
 "websearch__2","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","Our built-in [tool](../built-in) tool for websearch allows any of our models to access the web at any point to search websites and sources for relevant information to answer the given query.
 
 There are two versions:
@@ -1923,15 +1923,6 @@ simple_agent = client.beta.agents.update(
     }
 )
 ```"
-"document_library__47","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
-
-```bash
-curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents/<document_id>/text_content"" \
-     --header ""Accept: application/json"" \
-     --header ""Authorization: Bearer $MISTRAL_API_KEY""
-```
-  </TabItem>
-  <TabItem value=""output"" label=""output"">"
 "function_calling__5","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>
 ```py
@@ -1981,6 +1972,15 @@ async function getEuropeanentralBankInterestRate(date: str){
 ```
   </TabItem>
 </Tabs>"
+"document_library__47","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
+
+```bash
+curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents/<document_id>/text_content"" \
+     --header ""Accept: application/json"" \
+     --header ""Authorization: Bearer $MISTRAL_API_KEY""
+```
+  </TabItem>
+  <TabItem value=""output"" label=""output"">"
 "handoffs__1","platform-docs-public/public/agents/handoffs.md","Handoffs","<div style={{ textAlign: 'center' }}>
   <img
     src=""/img/handoffs.png""
@@ -2084,6 +2084,11 @@ let conversationMessages = await client.beta.conversations.getMessages({
 });
 ```
 </TabItem>"
+"document_library__86","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<SectionTab as=""h1"" sectionId=""how-it-works"">How it Works</SectionTab>
+
+Now that we have our document library agent ready, we can search them on demand at any point.
+
+<SectionTab as=""h2"" variant=""secondary"" sectionId=""conversation-with-document-library"">Conversations with Document Library</SectionTab>"
 "function_calling__0","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","---
 id: function_calling
 title: Function Calling
@@ -2094,11 +2099,6 @@ sidebar_position: 5
 # Function Calling
 
 The core of an agent relies on its tool usage capabilities, enabling it to use and call tools and workflows depending on the task it must accomplish."
-"document_library__86","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<SectionTab as=""h1"" sectionId=""how-it-works"">How it Works</SectionTab>
-
-Now that we have our document library agent ready, we can search them on demand at any point.
-
-<SectionTab as=""h2"" variant=""secondary"" sectionId=""conversation-with-document-library"">Conversations with Document Library</SectionTab>"
 "handoffs__23","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
 
 <TabItem value=""typescript"" label=""typescript"">
@@ -2126,7 +2126,6 @@ You can also **opt out** from the automatic storing with `store=False`; this wil
 We also provide the parameter `handoff_execution`, which currently has two modes: `server` or `client`.
 - `server`: Runs the handoff as expected internally on our cloud servers; this is the default setting.
 - `client`: When a handoff is triggered, a response is provided directly to the user, enabling them to handle the handoff with control."
-"document_library__51","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Recursively, $h_{i}$ can access tokens from the input layer at a distance of up to $W \\times k$ tokens, as illustrated in Figure 1. At the last layer, using a window size of $W=4096$, we have a theoretical attention span of approximately $131 K$ tokens. In practice, for a sequence length of 16 K and $W=4096$, changes made to FlashAttention [11] and xFormers [18] yield a 2 x speed improvement over a vanilla attention baseline.\n\n| Parameter | Value |\n| :-- | --: |\n| dim | 4096 |\n| n_layers | 32 |\n| head_dim | 128 |\n| hidden_dim | 14336 |\n| n_heads | 32 |\n| n_kv_heads | 8 |\n| window_size | 4096 |\n| context_len | 8192 |\n| vocab_size | 32000 |\n\nTable 1: Model architecture.\n\nRolling Buffer Cache. A fixed attention span means that we can limit our cache size using a rolling buffer cache. The cache has a fixed size of $W$, and the keys and values for the timestep $i$ are stored in position $i \\bmod W$ of the cache. As a result, when the position $i$ is larger than $W$, past values in the cache are overwritten, and the size of the cache stops increasing. We provide an illustration in Figure 2 for $W=3$. On a sequence length of 32 k tokens, this reduces the cache memory usage by 8 x , without impacting the model quality.\n\n[^0]\n[^0]:    ${ }^{1}$ https://github.com/mistralai/mistral-src\n    ${ }^{2}$ https://github.com/skypilot-org/skypilot\n    ${ }^{3}$ https://huggingface.co/mistralai\n\nFigure 2: Rolling buffer cache. The cache has a fixed size of $W=4$. Keys and values for position $i$ are stored in position $i \\bmod W$ of the cache."
 "document_library__41","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","</TabItem>
 
 <TabItem value=""typescript"" label=""typescript"">
@@ -2139,6 +2138,7 @@ const processedDoc = await client.beta.libraries.documents.get({
 });
 ```
   </TabItem>"
+"document_library__51","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Recursively, $h_{i}$ can access tokens from the input layer at a distance of up to $W \\times k$ tokens, as illustrated in Figure 1. At the last layer, using a window size of $W=4096$, we have a theoretical attention span of approximately $131 K$ tokens. In practice, for a sequence length of 16 K and $W=4096$, changes made to FlashAttention [11] and xFormers [18] yield a 2 x speed improvement over a vanilla attention baseline.\n\n| Parameter | Value |\n| :-- | --: |\n| dim | 4096 |\n| n_layers | 32 |\n| head_dim | 128 |\n| hidden_dim | 14336 |\n| n_heads | 32 |\n| n_kv_heads | 8 |\n| window_size | 4096 |\n| context_len | 8192 |\n| vocab_size | 32000 |\n\nTable 1: Model architecture.\n\nRolling Buffer Cache. A fixed attention span means that we can limit our cache size using a rolling buffer cache. The cache has a fixed size of $W$, and the keys and values for the timestep $i$ are stored in position $i \\bmod W$ of the cache. As a result, when the position $i$ is larger than $W$, past values in the cache are overwritten, and the size of the cache stops increasing. We provide an illustration in Figure 2 for $W=3$. On a sequence length of 32 k tokens, this reduces the cache memory usage by 8 x , without impacting the model quality.\n\n[^0]\n[^0]:    ${ }^{1}$ https://github.com/mistralai/mistral-src\n    ${ }^{2}$ https://github.com/skypilot-org/skypilot\n    ${ }^{3}$ https://huggingface.co/mistralai\n\nFigure 2: Rolling buffer cache. The cache has a fixed size of $W=4$. Keys and values for position $i$ are stored in position $i \\bmod W$ of the cache."
 "agents__24","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
     <TabItem value=""output"" label=""output"">
 
@@ -2167,6 +2167,37 @@ const processedDoc = await client.beta.libraries.documents.get({
     ""description"": ""A simple Agent with persistent state."",
     ""handoffs"": null,
     ""object"": ""agent""
+}
+```"
+"websearch__7","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","```json
+{
+  ""model"": ""mistral-medium-2505"",
+  ""name"": ""Websearch Agent"",
+  ""description"": ""Agent able to search information over the web, such as news, weather, sport results..."",
+  ""id"": ""ag_06835b734cc47dec8000b5f8f860b672"",
+  ""version"": 0,
+  ""created_at"": ""2025-05-27T12:59:32.803403Z"",
+  ""updated_at"": ""2025-05-27T12:59:32.803405Z"",
+  ""instructions"": ""You have the ability to perform web searches with `web_search` to find up-to-date information."",
+  ""tools"": [
+    {
+      ""type"": ""web_search""
+    }
+  ],
+  ""completion_args"": {
+    ""stop"": null,
+    ""presence_penalty"": null,
+    ""frequency_penalty"": null,
+    ""temperature"": 0.3,
+    ""top_p"": 0.95,
+    ""max_tokens"": null,
+    ""random_seed"": null,
+    ""prediction"": null,
+    ""response_format"": null,
+    ""tool_choice"": ""auto""
+  },
+  ""handoffs"": null,
+  ""object"": ""agent""
 }
 ```"
 "document_library__17","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","```bash
@@ -2203,37 +2234,12 @@ curl --location ""https://api.mistral.ai/v1/libraries"" \
 ```
   </TabItem>
 </Tabs>"
-"websearch__7","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","```json
-{
-  ""model"": ""mistral-medium-2505"",
-  ""name"": ""Websearch Agent"",
-  ""description"": ""Agent able to search information over the web, such as news, weather, sport results..."",
-  ""id"": ""ag_06835b734cc47dec8000b5f8f860b672"",
-  ""version"": 0,
-  ""created_at"": ""2025-05-27T12:59:32.803403Z"",
-  ""updated_at"": ""2025-05-27T12:59:32.803405Z"",
-  ""instructions"": ""You have the ability to perform web searches with `web_search` to find up-to-date information."",
-  ""tools"": [
-    {
-      ""type"": ""web_search""
-    }
-  ],
-  ""completion_args"": {
-    ""stop"": null,
-    ""presence_penalty"": null,
-    ""frequency_penalty"": null,
-    ""temperature"": 0.3,
-    ""top_p"": 0.95,
-    ""max_tokens"": null,
-    ""random_seed"": null,
-    ""prediction"": null,
-    ""response_format"": null,
-    ""tool_choice"": ""auto""
-  },
-  ""handoffs"": null,
-  ""object"": ""agent""
-}
-```"
+"image_generation__15","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","- **`tool.execution`**: This entry corresponds to the execution of the image generation tool. It includes metadata about the execution, such as:
+  - `name`: The name of the tool, which in this case is `image_generation`.
+  - `object`: The type of object, which is `entry`.
+  - `type`: The type of entry, which is `tool.execution`.
+  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
+  - `id`: A unique identifier for the tool execution."
 "code_interpreter__11","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","<TabItem value=""curl"" label=""curl"">
 
 ```bash
@@ -2249,12 +2255,6 @@ curl --location ""https://api.mistral.ai/v1/conversations"" \
 ```
   </TabItem>
   <TabItem value=""output"" label=""output"">"
-"image_generation__15","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","- **`tool.execution`**: This entry corresponds to the execution of the image generation tool. It includes metadata about the execution, such as:
-  - `name`: The name of the tool, which in this case is `image_generation`.
-  - `object`: The type of object, which is `entry`.
-  - `type`: The type of entry, which is `tool.execution`.
-  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
-  - `id`: A unique identifier for the tool execution."
 "handoffs__33","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
 </Tabs>
 
@@ -2281,7 +2281,6 @@ data: {""type"":""conversation.response.done"",""usage"":{""prompt_tokens"":1870
 ```
   </ExplorerTab>
 </ExplorerTabs>"
-"document_library__56","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","No proprietary data or training tricks were utilized: Mistral 7B - Instruct model is a simple and preliminary demonstration that the base model can easily be fine-tuned to achieve good performance. In Table 3, we observe that the resulting model, Mistral 7B - Instruct, exhibits superior performance compared to all 7B models on MT-Bench, and is comparable to 13B - Chat models. An independent human evaluation was conducted on https://llmboxing.com/leaderboard.\n\n|  Model | Chatbot Arena\nELO Rating | MT Bench  |\n| --- | --- | --- |\n|  WizardLM 13B v1.2 | 1047 | 7.2  |\n|  Mistral 7B Instruct | $\\mathbf{1 0 3 1}$ | $\\mathbf{6 . 8 4}+\\mathbf{- 0 . 0 7}$  |\n|  Llama 2 13B Chat | 1012 | 6.65  |\n|  Vicuna 13B | 1041 | 6.57  |\n|  Llama 2 7B Chat | 985 | 6.27  |\n|  Vicuna 7B | 997 | 6.17  |\n|  Alpaca 13B | 914 | 4.53  |\n\nTable 3: Comparison of Chat models. Mistral 7B Instruct outperforms all 7B models on MT-Bench, and is comparable to 13B - Chat models.\n\nIn this evaluation, participants were provided with a set of questions along with anonymous responses from two models and were asked to select their preferred response, as illustrated in Figure 6. As of October 6, 2023, the outputs generated by Mistral 7B were preferred 5020 times, compared to 4143 times for Llama 2 13B.\n\nFigure 5: Results on MMLU, commonsense reasoning, world knowledge and reading comprehension for Mistral 7B and Llama 2 (7B/13B/70B). Mistral 7B largely outperforms Llama 213B on all evaluations, except on knowledge benchmarks, where it is on par (this is likely due to its limited parameter count, which limits the amount of knowledge it can compress).\n\n# 5 Adding guardrails for front-facing applications \n\nThe ability to enforce guardrails when it comes to AI generation is important for front-facing applications. In this section, we highlight how to leverage system prompting to optionally enforce output constraints on top of our models. Additionally, we showcase the ability of Mistral 7B to perform fine-grained content moderation, which can be useful to enforce quality content in applications.\n\n### 5.1 System prompt to enforce guardrails\n\nWe introduce a system prompt (see below) to guide the model to generate answers within specified guardrails, similar to the work done with Llama 2."
 "agents__26","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
     <TabItem value=""typescript"" label=""typescript"">
 
@@ -2291,6 +2290,7 @@ let response = await client.beta.conversations.start({
     inputs:[{role: ""user"", content:""Who is Albert Einstein?""}]
 });
 ```"
+"document_library__56","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","No proprietary data or training tricks were utilized: Mistral 7B - Instruct model is a simple and preliminary demonstration that the base model can easily be fine-tuned to achieve good performance. In Table 3, we observe that the resulting model, Mistral 7B - Instruct, exhibits superior performance compared to all 7B models on MT-Bench, and is comparable to 13B - Chat models. An independent human evaluation was conducted on https://llmboxing.com/leaderboard.\n\n|  Model | Chatbot Arena\nELO Rating | MT Bench  |\n| --- | --- | --- |\n|  WizardLM 13B v1.2 | 1047 | 7.2  |\n|  Mistral 7B Instruct | $\\mathbf{1 0 3 1}$ | $\\mathbf{6 . 8 4}+\\mathbf{- 0 . 0 7}$  |\n|  Llama 2 13B Chat | 1012 | 6.65  |\n|  Vicuna 13B | 1041 | 6.57  |\n|  Llama 2 7B Chat | 985 | 6.27  |\n|  Vicuna 7B | 997 | 6.17  |\n|  Alpaca 13B | 914 | 4.53  |\n\nTable 3: Comparison of Chat models. Mistral 7B Instruct outperforms all 7B models on MT-Bench, and is comparable to 13B - Chat models.\n\nIn this evaluation, participants were provided with a set of questions along with anonymous responses from two models and were asked to select their preferred response, as illustrated in Figure 6. As of October 6, 2023, the outputs generated by Mistral 7B were preferred 5020 times, compared to 4143 times for Llama 2 13B.\n\nFigure 5: Results on MMLU, commonsense reasoning, world knowledge and reading comprehension for Mistral 7B and Llama 2 (7B/13B/70B). Mistral 7B largely outperforms Llama 213B on all evaluations, except on knowledge benchmarks, where it is on par (this is likely due to its limited parameter count, which limits the amount of knowledge it can compress).\n\n# 5 Adding guardrails for front-facing applications \n\nThe ability to enforce guardrails when it comes to AI generation is important for front-facing applications. In this section, we highlight how to leverage system prompting to optionally enforce output constraints on top of our models. Additionally, we showcase the ability of Mistral 7B to perform fine-grained content moderation, which can be useful to enforce quality content in applications.\n\n### 5.1 System prompt to enforce guardrails\n\nWe introduce a system prompt (see below) to guide the model to generate answers within specified guardrails, similar to the work done with Llama 2."
 "document_library__38","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","The status will be `Running` while the document is being processed and `Completed` once the document is ready to be used.
 
 <Tabs groupId=""status"">
@@ -2483,6 +2483,7 @@ file_bytes = client.files.download(file_id=file_chunk.file_id).read()
 with open(f""image_generated.png"", ""wb"") as file:
     file.write(file_bytes)
 ```"
+"document_library__61","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Longformer: The long-document transformer. arXiv preprint arXiv:2004.05150, 2020.\n[4] Yonatan Bisk, Rowan Zellers, Jianfeng Gao, Yejin Choi, et al. Piqa: Reasoning about physical commonsense in natural language. In Proceedings of the AAAI conference on artificial intelligence, 2020.\n[5] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374, 2021.\n[6] Rewon Child, Scott Gray, Alec Radford, and Ilya Sutskever. Generating long sequences with sparse transformers. arXiv preprint arXiv:1904.10509, 2019.\n[7] Eunsol Choi, He He, Mohit Iyyer, Mark Yatskar, Wen-tau Yih, Yejin Choi, Percy Liang, and Luke Zettlemoyer. Quac: Question answering in context. arXiv preprint arXiv:1808.07036, 2018.\n[8] Christopher Clark, Kenton Lee, Ming-Wei Chang, Tom Kwiatkowski, Michael Collins, and Kristina Toutanova."
 "built-in__4","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","```py
 agent = client.beta.agents.create(
     model=""<model>"",
@@ -2492,7 +2493,6 @@ agent = client.beta.agents.create(
     tools=[<list_of_tools>]
 )
 ```"
-"document_library__61","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Longformer: The long-document transformer. arXiv preprint arXiv:2004.05150, 2020.\n[4] Yonatan Bisk, Rowan Zellers, Jianfeng Gao, Yejin Choi, et al. Piqa: Reasoning about physical commonsense in natural language. In Proceedings of the AAAI conference on artificial intelligence, 2020.\n[5] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374, 2021.\n[6] Rewon Child, Scott Gray, Alec Radford, and Ilya Sutskever. Generating long sequences with sparse transformers. arXiv preprint arXiv:1904.10509, 2019.\n[7] Eunsol Choi, He He, Mohit Iyyer, Mark Yatskar, Wen-tau Yih, Yejin Choi, Percy Liang, and Luke Zettlemoyer. Quac: Question answering in context. arXiv preprint arXiv:1808.07036, 2018.\n[8] Christopher Clark, Kenton Lee, Ming-Wei Chang, Tom Kwiatkowski, Michael Collins, and Kristina Toutanova."
 "document_library__10","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
 
 ```bash
@@ -2519,6 +2519,16 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
 ```
   </TabItem>
   <TabItem value=""output"" label=""output"">"
+"document_library__37","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
+
+```bash
+curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents/<document_id>/status"" \
+     --header ""Accept: application/json"" \
+     --header ""Authorization: Bearer $MISTRAL_API_KEY""
+```
+  </TabItem>
+</Tabs>"
+"document_library__55","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","9 \\%}$ | $\\mathbf{3 0 . 5 \\%}$ | $47.5 \\%$ | $\\mathbf{1 3 . 1 \\%}$ | $\\mathbf{5 2 . 2 \\%}$  |\n\nTable 2: Comparison of Mistral 7B with Llama. Mistral 7B outperforms Llama 2 13B on all metrics, and approaches the code performance of Code-Llama 7B without sacrificing performance on non-code benchmarks.\n\nSize and Efficiency. We computed \""equivalent model sizes\"" of the Llama 2 family, aiming to understand Mistral 7B models' efficiency in the cost-performance spectrum (see Figure 5). When evaluated on reasoning, comprehension, and STEM reasoning (specifically MMLU), Mistral 7B mirrored performance that one might expect from a Llama 2 model with more than 3x its size. On the Knowledge benchmarks, Mistral 7B's performance achieves a lower compression rate of 1.9x, which is likely due to its limited parameter count that restricts the amount of knowledge it can store. Evaluation Differences. On some benchmarks, there are some differences between our evaluation protocol and the one reported in the Llama 2 paper: 1) on MBPP, we use the hand-verified subset 2) on TriviaQA, we do not provide Wikipedia contexts.\n\n# 4 Instruction Finetuning\n\nTo evaluate the generalization capabilities of Mistral 7B, we fine-tuned it on instruction datasets publicly available on the Hugging Face repository."
 "agents__12","platform-docs-public/public/agents/agents.md","Agent Creation and Management","```py
 simple_agent = client.beta.agents.update_version(
     agent_id=simple_agent.id, 
@@ -2537,32 +2547,12 @@ websearchAgent = await client.beta.agents.updateVersion({
 });
 ```
   </TabItem>"
-"document_library__55","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","9 \\%}$ | $\\mathbf{3 0 . 5 \\%}$ | $47.5 \\%$ | $\\mathbf{1 3 . 1 \\%}$ | $\\mathbf{5 2 . 2 \\%}$  |\n\nTable 2: Comparison of Mistral 7B with Llama. Mistral 7B outperforms Llama 2 13B on all metrics, and approaches the code performance of Code-Llama 7B without sacrificing performance on non-code benchmarks.\n\nSize and Efficiency. We computed \""equivalent model sizes\"" of the Llama 2 family, aiming to understand Mistral 7B models' efficiency in the cost-performance spectrum (see Figure 5). When evaluated on reasoning, comprehension, and STEM reasoning (specifically MMLU), Mistral 7B mirrored performance that one might expect from a Llama 2 model with more than 3x its size. On the Knowledge benchmarks, Mistral 7B's performance achieves a lower compression rate of 1.9x, which is likely due to its limited parameter count that restricts the amount of knowledge it can store. Evaluation Differences. On some benchmarks, there are some differences between our evaluation protocol and the one reported in the Llama 2 paper: 1) on MBPP, we use the hand-verified subset 2) on TriviaQA, we do not provide Wikipedia contexts.\n\n# 4 Instruction Finetuning\n\nTo evaluate the generalization capabilities of Mistral 7B, we fine-tuned it on instruction datasets publicly available on the Hugging Face repository."
-"document_library__37","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
-
-```bash
-curl --location ""https://api.mistral.ai/v1/libraries/<library_id>/documents/<document_id>/status"" \
-     --header ""Accept: application/json"" \
-     --header ""Authorization: Bearer $MISTRAL_API_KEY""
-```
-  </TabItem>
-</Tabs>"
 "agents__11","platform-docs-public/public/agents/agents.md","Agent Creation and Management","<SectionTab as=""h2"" variant=""secondary"" sectionId=""change-version"">Change version</SectionTab>
 
 Change manually the version of the Agent.
 
 <Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>"
-"code_interpreter__10","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","<TabItem value=""typescript"" label=""typescript"">
-
-```typescript
-let conversation = await client.beta.conversations.start({
-    agentId: codeAgent.id,
-    inputs:""Run a fibonacci function for the first 20 values."",
-    //store:false
-});
-```
-  </TabItem>"
 "image_generation__11","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","<TabItem value=""typescript"" label=""typescript"">
 
 ```typescript
@@ -2570,6 +2560,16 @@ let conversation = await client.beta.conversations.start({
       agentId: imageAgent.id,
       inputs:""Generate an orange cat in an office."",
       //store:false
+});
+```
+  </TabItem>"
+"code_interpreter__10","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","<TabItem value=""typescript"" label=""typescript"">
+
+```typescript
+let conversation = await client.beta.conversations.start({
+    agentId: codeAgent.id,
+    inputs:""Run a fibonacci function for the first 20 values."",
+    //store:false
 });
 ```
   </TabItem>"
@@ -2735,12 +2735,6 @@ curl --location ""https://api.mistral.ai/v1/conversations"" \
      ""agent_id"": ""<agent_id>""
   }'
 ```"
-"document_library__12","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","As with other agents, when creating one, you will receive an agent ID corresponding to the created agent. You can use this ID to start a conversation.
-
-Next, learn how you can manage your libraries and agents in the **[Manage Libraries](?tab=manage-libraries#explorer-tabs-agent_creation_and_library_management)** tab.
-  </ExplorerTab>
-  <ExplorerTab value=""manage-libraries"" label=""manage libraries"">
-    We provide a full API for managing your libraries, from uploading, deleting and controlling access."
 "handoffs__30","platform-docs-public/public/agents/handoffs.md","Handoffs","</TabItem>
 
 <TabItem value=""typescript"" label=""typescript"">
@@ -2779,6 +2773,12 @@ if (
   });
 }
 ```"
+"document_library__12","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","As with other agents, when creating one, you will receive an agent ID corresponding to the created agent. You can use this ID to start a conversation.
+
+Next, learn how you can manage your libraries and agents in the **[Manage Libraries](?tab=manage-libraries#explorer-tabs-agent_creation_and_library_management)** tab.
+  </ExplorerTab>
+  <ExplorerTab value=""manage-libraries"" label=""manage libraries"">
+    We provide a full API for managing your libraries, from uploading, deleting and controlling access."
 "mcp__30","platform-docs-public/public/agents/tools/mcp.md","MCP","Here is a brief example of how to stream conversations:
 
 ```python
@@ -2871,7 +2871,6 @@ const deletedLibrary = await client.beta.libraries.delete({
 
 </TabItem>
       <TabItem value=""document"" label=""document"">"
-"document_library__60","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","For a foundational and accessible introduction to quantum physics, I highly recommend \""The Feynman Lectures on Physics\"" by Richard Feynman. This classic text provides a clear and engaging overview of the principles and concepts of quantum mechanics, with minimal mathematical formalism and plenty of illustrations and examples. It's a great starting point for anyone looking to gain a deeper understanding of quantum physics without getting bogged down in too much technical detail.\n\nFigure 6: Human evaluation of Mistral 7B - Instruct vs Llama 2 13B - Chat Example. An example of human evaluation from limboxing.com. The question asks for recommendations of books in quantum physics. Llama 213 B - Chat recommends a general physics book, while Mistral 7B - Instruct recommends a more relevant book on quantum physics and describes in the contents in more detail.# References \n\n[1] Joshua Ainslie, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. Gqa: Training generalized multi-query transformer models from multi-head checkpoints. arXiv preprint arXiv:2305.13245, 2023.\n[2] Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al. Program synthesis with large language models. arXiv preprint arXiv:2108.07732, 2021.\n[3] Iz Beltagy, Matthew E Peters, and Arman Cohan."
 "document_library__67","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.) (cont.)","}
 ```
     </TabItem>
@@ -2883,6 +2882,7 @@ You can delete libraries and documents freely as needed.
 
 <Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>"
+"document_library__60","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","For a foundational and accessible introduction to quantum physics, I highly recommend \""The Feynman Lectures on Physics\"" by Richard Feynman. This classic text provides a clear and engaging overview of the principles and concepts of quantum mechanics, with minimal mathematical formalism and plenty of illustrations and examples. It's a great starting point for anyone looking to gain a deeper understanding of quantum physics without getting bogged down in too much technical detail.\n\nFigure 6: Human evaluation of Mistral 7B - Instruct vs Llama 2 13B - Chat Example. An example of human evaluation from limboxing.com. The question asks for recommendations of books in quantum physics. Llama 213 B - Chat recommends a general physics book, while Mistral 7B - Instruct recommends a more relevant book on quantum physics and describes in the contents in more detail.# References \n\n[1] Joshua Ainslie, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. Gqa: Training generalized multi-query transformer models from multi-head checkpoints. arXiv preprint arXiv:2305.13245, 2023.\n[2] Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al. Program synthesis with large language models. arXiv preprint arXiv:2108.07732, 2021.\n[3] Iz Beltagy, Matthew E Peters, and Arman Cohan."
 "built-in__6","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","```typescript
 agent = client.beta.agents.create({
     model:""<model>"",
@@ -3014,6 +3014,19 @@ Note that you can still add more tools to the agent, the model is free to run co
   ""object"": ""conversation.response""
 }
 ```"
+"code_interpreter__14","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","- **`message.output`**: This entry corresponds to the initial response from the assistant, indicating that it can help generate the first 20 Fibonacci numbers.
+
+- **`tool.execution`**: This entry corresponds to the execution of the code interpreter tool. It includes metadata about the execution, such as:
+  - `name`: The name of the tool, which in this case is `code_interpreter`.
+  - `object`: The type of object, which is `entry`.
+  - `type`: The type of entry, which is `tool.execution`.
+  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
+  - `id`: A unique identifier for the tool execution.
+  - `info`: This section contains additional information specific to the tool execution. For the `code_interpreter` tool, the `info` section includes:
+    - `code`: The actual code that was executed. In this example, it contains a Python function `fibonacci(n)` that generates the first `n` numbers in the Fibonacci sequence and a call to this function to get the first 20 Fibonacci numbers.
+    - `code_output`: The output of the executed code, which is the list of the first 20 Fibonacci numbers.
+
+- **`message.output`**: This entry corresponds to the final response from the assistant, providing the first 20 values of the Fibonacci sequence."
 "agents__21","platform-docs-public/public/agents/agents.md","Conversations","To start a conversation with an Agent, you need to provide the Agent ID and the inputs.
 
 <Tabs groupId=""code"">
@@ -3037,19 +3050,6 @@ sidebar_position: 2
 # Websearch
 
 Websearch is the capability to **browse the web in search of information**, this tool does not only fix the limitations of models of not being up to date due to their training data, but also allows them to actually retrieve recent information or access specific websites."
-"code_interpreter__14","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","- **`message.output`**: This entry corresponds to the initial response from the assistant, indicating that it can help generate the first 20 Fibonacci numbers.
-
-- **`tool.execution`**: This entry corresponds to the execution of the code interpreter tool. It includes metadata about the execution, such as:
-  - `name`: The name of the tool, which in this case is `code_interpreter`.
-  - `object`: The type of object, which is `entry`.
-  - `type`: The type of entry, which is `tool.execution`.
-  - `created_at` and `completed_at`: Timestamps indicating when the tool execution started and finished.
-  - `id`: A unique identifier for the tool execution.
-  - `info`: This section contains additional information specific to the tool execution. For the `code_interpreter` tool, the `info` section includes:
-    - `code`: The actual code that was executed. In this example, it contains a Python function `fibonacci(n)` that generates the first `n` numbers in the Fibonacci sequence and a call to this function to get the first 20 Fibonacci numbers.
-    - `code_output`: The output of the executed code, which is the list of the first 20 Fibonacci numbers.
-
-- **`message.output`**: This entry corresponds to the final response from the assistant, providing the first 20 values of the Fibonacci sequence."
 "websearch__10","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","To start a conversation with our websearch agent, we can use the following code:
 
 <Tabs groupId=""code"">
@@ -3062,9 +3062,6 @@ response = client.beta.conversations.start(
 )
 ```"
 "document_library__58","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","It's important to note that killing a process can have unintended consequences, so it's generally a good idea to only kill processes that you are certain you want to terminate. Additionally, it's generally a good idea to use the `kill` command with caution, as it can be used to terminate critical system processes that are necessary for the operation of the system. |\n| Llama 2 13B - Chat with Llama 2 system prompt | As a helpful and respectful assistant, I cannot provide information on how to kill a Linux process. It is not appropriate or ethical to intentionally harm or terminate processes, as it can cause damage to the system and potentially result in data loss. Additionally, it is important to respect the autonomy and security of other users' processes, as they may be critical to their work or personal activities. Instead, I suggest that you explore other options to address any issues or concerns you may have. |\n\nTable 5: Comparison between Mistral and Llama system prompts. Mistral provides the right answer whereas Llama 2 declines to answer to the question How to kill a linux process.\n\nTo do so, we designed a self-reflection prompt that makes Mistral 7B classify a prompt or a generated answer. We evaluated self-reflection on our manually curated and balanced dataset of adversarial and standard prompts and got a precision of $99.4 \\%$ for a recall of $95.6 \\%$ (considering acceptable prompts as positives).\n\nThe use cases are vast, from moderating comments on social media or forums to brand monitoring on the internet. In particular, the end user is able to select afterwards which categories to effectively filter based on their particular use-case.\n\n# 6 Conclusion \n\nOur work on Mistral 7B demonstrates that language models may compress knowledge more than what was previously thought."
-"function_calling__4","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<SectionTab as=""h2"" variant=""secondary"" sectionId=""define-the-function"">Define the Function</SectionTab>
-
-We need to define our function that we want our model to call when needed, in this case, the function is a dummy for demonstration purposes."
 "mcp__20","platform-docs-public/public/agents/tools/mcp.md","MCP","```python
 #!/usr/bin/env python
 import asyncio
@@ -3082,6 +3079,9 @@ from mistralai.extra.mcp.auth import build_oauth_params
 MODEL = ""mistral-medium-latest""
 CALLBACK_PORT = 16010
 ```"
+"function_calling__4","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<SectionTab as=""h2"" variant=""secondary"" sectionId=""define-the-function"">Define the Function</SectionTab>
+
+We need to define our function that we want our model to call when needed, in this case, the function is a dummy for demonstration purposes."
 "document_library__89","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
 
 ```bash
@@ -3143,6 +3143,16 @@ access_deleted = client.beta.libraries.accesses.delete(
     share_with_type=""<account_type>""
 )
 ```"
+"document_library__0","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","---
+id: document_library
+title: Document Library
+slug: document_library
+sidebar_position: 5
+---
+
+# Document Library
+
+Document Library is a built-in [tool](../built-in) tool that enables agents to access documents from Mistral Cloud."
 "image_generation__7","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","```json
 {
   ""model"": ""mistral-medium-2505"",
@@ -3174,16 +3184,6 @@ access_deleted = client.beta.libraries.accesses.delete(
   ""object"": ""agent""
 }
 ```"
-"document_library__0","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","---
-id: document_library
-title: Document Library
-slug: document_library
-sidebar_position: 5
----
-
-# Document Library
-
-Document Library is a built-in [tool](../built-in) tool that enables agents to access documents from Mistral Cloud."
 "agents__39","platform-docs-public/public/agents/agents.md","Conversations (cont.) (cont.) (cont.)","""content"": ""Translate to French."",
     ""object"": ""entry"",
     ""type"": ""message.input"",
@@ -3239,6 +3239,19 @@ console.log(docStatus);
 
 ```
   </TabItem>"
+"document_library__74","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","</TabItem>
+    </Tabs>
+  </TabItem>
+</Tabs>
+
+<SectionTab as=""h2"" variant=""secondary"" sectionId=""control-access"">Control Access</SectionTab>
+
+You can manage and control who has access to which libraries.  
+This control is managed via different parameters:  
+- `ord_id` corresponds to the ID of your organization.
+- `level` corresponds to the access level of the entity and can be one of two options: ""Viewer"" or ""Editor"".
+- `share_with_uuid` corresponds to the ID of the entity you want to share with; you can find these in the console and platforme settings.
+- `share_with_type` corresponds to the type of the entity you want to share with and can be one of three options: ""User"", ""Workspace"", or ""Org""."
 "agents__28","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
     <TabItem value=""output"" label=""output"">
 
@@ -3269,19 +3282,6 @@ console.log(docStatus);
     ""object"": ""agent""
 }
 ```"
-"document_library__74","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","</TabItem>
-    </Tabs>
-  </TabItem>
-</Tabs>
-
-<SectionTab as=""h2"" variant=""secondary"" sectionId=""control-access"">Control Access</SectionTab>
-
-You can manage and control who has access to which libraries.  
-This control is managed via different parameters:  
-- `ord_id` corresponds to the ID of your organization.
-- `level` corresponds to the access level of the entity and can be one of two options: ""Viewer"" or ""Editor"".
-- `share_with_uuid` corresponds to the ID of the entity you want to share with; you can find these in the console and platforme settings.
-- `share_with_type` corresponds to the type of the entity you want to share with and can be one of three options: ""User"", ""Workspace"", or ""Org""."
 "agents__46","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
 data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":""The""}"
 "document_library__88","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""typescript"" label=""typescript"">
@@ -3345,9 +3345,6 @@ curl --location --request DELETE ""https://api.mistral.ai/v1/libraries/<library_
      --header ""Accept: application/json"" \
      --header ""Authorization: Bearer $MISTRAL_API_KEY""
 ```"
-"websearch__14","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","<SectionTab as=""h2"" variant=""secondary"" sectionId=""explanation-of-the-output"">Explanation of the Output</SectionTab>
-
-Below we will explain the different outputs of the response of the previous snippet example:"
 "handoffs__10","platform-docs-public/public/agents/handoffs.md","Handoffs","```bash
 curl --location ""https://api.mistral.ai/v1/agents"" \
      --header 'Content-Type: application/json' \
@@ -3385,7 +3382,13 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
     }
   }'
 ```"
+"websearch__14","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","<SectionTab as=""h2"" variant=""secondary"" sectionId=""explanation-of-the-output"">Explanation of the Output</SectionTab>
+
+Below we will explain the different outputs of the response of the previous snippet example:"
 "document_library__49","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Mistral 7B outperforms the previous best 13B model (Llama 2, [26]) across all tested benchmarks, and surpasses the best 34B model (LLaMa 34B, [25]) in mathematics and code generation. Furthermore, Mistral 7B approaches the coding performance of Code-Llama 7B [20], without sacrificing performance on non-code related benchmarks.\n\nMistral 7B leverages grouped-query attention (GQA) [1], and sliding window attention (SWA) [6, 3]. GQA significantly accelerates the inference speed, and also reduces the memory requirement during decoding, allowing for higher batch sizes hence higher throughput, a crucial factor for real-time applications. In addition, SWA is designed to handle longer sequences more effectively at a reduced computational cost, thereby alleviating a common limitation in LLMs. These attention mechanisms collectively contribute to the enhanced performance and efficiency of Mistral 7B.Mistral 7B is released under the Apache 2.0 license. This release is accompanied by a reference implementation [1] facilitating easy deployment either locally or on cloud platforms such as AWS, GCP, or Azure using the vLLM [17] inference server and SkyPilot [2]. Integration with Hugging Face [3] is also streamlined for easier integration. Moreover, Mistral 7B is crafted for ease of fine-tuning across a myriad of tasks. As a demonstration of its adaptability and superior performance, we present a chat model fine-tuned from Mistral 7B that significantly outperforms the Llama 2 13B - Chat model.\n\nMistral 7B takes a significant step in balancing the goals of getting high performance while keeping large language models efficient. Through our work, our aim is to help the community create more affordable, efficient, and high-performing language models that can be used in a wide range of real-world applications.\n\n# 2 Architectural details \n\n\n\nFigure 1: Sliding Window Attention."
+"mcp__29","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h2"" variant=""secondary"" sectionId=""streaming-conversations"">Streaming Conversations</SectionTab>
+
+Streaming conversations with an agent using a local MCP server is similar to non-streaming, but instead of waiting for the entire response, you process the results as they arrive."
 "document_library__9","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""typescript"" label=""typescript"">
 
 ```typescript
@@ -3416,12 +3419,6 @@ let libraryAgent = await client.beta.agents.create({
     className='mx-auto' 
   />
 </div>"
-"mcp__29","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h2"" variant=""secondary"" sectionId=""streaming-conversations"">Streaming Conversations</SectionTab>
-
-Streaming conversations with an agent using a local MCP server is similar to non-streaming, but instead of waiting for the entire response, you process the results as they arrive."
-"image_generation__3","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","<SectionTab as=""h1"" sectionId=""create-an-image-generation-agent"">Create an Image Generation Agent</SectionTab>
-
-You can create an agent with access to image generation by providing it as one of the tools. Note that you can still add more tools to the agent. The model is free to create images on demand."
 "document_library__91","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","""created_at"": ""2025-05-27T13:16:11.239496Z"",
       ""completed_at"": ""2025-05-27T13:16:17.211241Z"",
       ""id"": ""msg_06835bb1b3d47ca580001b213d836798"",
@@ -3468,6 +3465,19 @@ if __name__ == ""__main__"":
   </ExplorerTab>
   <ExplorerTab value=""remote-mcp-auth"" label=""Remote MCP Server with Auth"">
     Here is how to use a remote MCP server with authentication."
+"image_generation__3","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","<SectionTab as=""h1"" sectionId=""create-an-image-generation-agent"">Create an Image Generation Agent</SectionTab>
+
+You can create an agent with access to image generation by providing it as one of the tools. Note that you can still add more tools to the agent. The model is free to create images on demand."
+"document_library__13","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","**Library Management Overview:**
+- [Library Creation](#library-creation): Create a new library.
+  - [Listing Libraries](#listing-libraries): List your existing libraries.
+- [Upload Documents](#upload): Upload documents to a library.
+  - [Listing Documents](#listing-documents): List documents in a library.
+  - [Document Status](#status): Check the status of a document.
+  - [Get Document](#get-document): Get a document information.
+  - [Get Document Content](#get-document-content): Get a document text content.
+- [Delete Documents/Libraries](#delete-libraries): Delete documents or libraries.   
+- [Control Access](#control-access): Control who has access to your libraries."
 "built-in__7","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","</TabItem>
       <TabItem value=""conversation"" label=""direct conversation"">
 
@@ -3479,16 +3489,6 @@ response = client.beta.conversations.start({
     // store:False
 });
 ```"
-"document_library__13","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","**Library Management Overview:**
-- [Library Creation](#library-creation): Create a new library.
-  - [Listing Libraries](#listing-libraries): List your existing libraries.
-- [Upload Documents](#upload): Upload documents to a library.
-  - [Listing Documents](#listing-documents): List documents in a library.
-  - [Document Status](#status): Check the status of a document.
-  - [Get Document](#get-document): Get a document information.
-  - [Get Document Content](#get-document-content): Get a document text content.
-- [Delete Documents/Libraries](#delete-libraries): Delete documents or libraries.   
-- [Control Access](#control-access): Control who has access to your libraries."
 "agents__27","platform-docs-public/public/agents/agents.md","Conversations","</TabItem>
     <TabItem value=""curl"" label=""curl"">
 
@@ -3626,6 +3626,18 @@ const uploadedDoc = await client.beta.libraries.documents.upload({
 
 Another tool that pro-actively uses references is the document library tool, feel free to take a look [here](../document_library).   
 For more information regarding the use of citations, you can find more [here](../../../capabilities/citations)."
+"document_library__71","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","```typescript
+const deletedDocument = await client.beta.libraries.documents.delete({
+    libraryId: newLibrary.id,
+    documentId: uploadedDoc.id
+});
+```
+
+</TabItem>
+    </Tabs>
+
+</TabItem>
+  <TabItem value=""curl"" label=""curl"">"
 "agents__50","platform-docs-public/public/agents/agents.md","Conversations","...
 
 event: message.output.delta
@@ -3710,18 +3722,6 @@ curl -X POST ""https://api.mistral.ai/v1/agents"" \
 ```
   </TabItem>
 </Tabs>"
-"document_library__71","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","```typescript
-const deletedDocument = await client.beta.libraries.documents.delete({
-    libraryId: newLibrary.id,
-    documentId: uploadedDoc.id
-});
-```
-
-</TabItem>
-    </Tabs>
-
-</TabItem>
-  <TabItem value=""curl"" label=""curl"">"
 "websearch__11","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","</TabItem>
   <TabItem value=""typescript"" label=""typescript"">
 
@@ -3770,11 +3770,11 @@ curl --location ""https://api.mistral.ai/v1/agents"" \
     ],
   }'
 ```"
+"handoffs__2","platform-docs-public/public/agents/handoffs.md","Handoffs","When creating a workflow powered by Handoffs, we first need to create all the Agents that our workflow will use.
+There is no limit to how many chained Handoffs a workflow can have. You are free to create multiple Agents using diverse tools, models and handoffs, and orchestrate your own workflow using these Agents."
 "mcp__22","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h3"" variant=""secondary"" sectionId=""remote-auth-step-3"">Step 3: Define Server URL and Create MCP Client</SectionTab>
 
 We define the URL for the remote MCP server and create an MCP client to connect to it."
-"handoffs__2","platform-docs-public/public/agents/handoffs.md","Handoffs","When creating a workflow powered by Handoffs, we first need to create all the Agents that our workflow will use.
-There is no limit to how many chained Handoffs a workflow can have. You are free to create multiple Agents using diverse tools, models and handoffs, and orchestrate your own workflow using these Agents."
 "function_calling__11","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<SectionTab as=""h2"" variant=""secondary"" sectionId=""return-result"">Return the Function Result</SectionTab>
 
 The model will output either an answer, or a function call, we need to detect and return the result of the expected function."
@@ -3863,7 +3863,6 @@ response = client.beta.conversations.start(
 )
 ```
   </TabItem>"
-"document_library__65","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Winogrande: An adversarial winograd schema challenge at scale. Communications of the ACM, 64(9):99-106, 2021.\n[22] Maarten Sap, Hannah Rashkin, Derek Chen, Ronan LeBras, and Yejin Choi. Socialiqa: Commonsense reasoning about social interactions. arXiv preprint arXiv:1904.09728, 2019.\n[23] Mirac Suzgun, Nathan Scales, Nathanael Schärli, Sebastian Gehrmann, Yi Tay, Hyung Won Chung, Aakanksha Chowdhery, Quoc V Le, Ed H Chi, Denny Zhou, , and Jason Wei. Challenging big-bench tasks and whether chain-of-thought can solve them. arXiv preprint arXiv:2210.09261, 2022.\n[24] Alon Talmor, Jonathan Herzig, Nicholas Lourie, and Jonathan Berant. Commonsenseqa: A question answering challenge targeting commonsense knowledge. arXiv preprint arXiv:1811.00937, 2018.\n[25] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al. Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971, 2023.\n[26] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al."
 "document_library__90","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","```json
 {
   ""conversation_id"": ""conv_06835bb1996079898000435d8a0b1afd"",
@@ -3885,6 +3884,7 @@ response = client.beta.conversations.start(
         }
       ],
       ""object"": ""entry"","
+"document_library__65","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Winogrande: An adversarial winograd schema challenge at scale. Communications of the ACM, 64(9):99-106, 2021.\n[22] Maarten Sap, Hannah Rashkin, Derek Chen, Ronan LeBras, and Yejin Choi. Socialiqa: Commonsense reasoning about social interactions. arXiv preprint arXiv:1904.09728, 2019.\n[23] Mirac Suzgun, Nathan Scales, Nathanael Schärli, Sebastian Gehrmann, Yi Tay, Hyung Won Chung, Aakanksha Chowdhery, Quoc V Le, Ed H Chi, Denny Zhou, , and Jason Wei. Challenging big-bench tasks and whether chain-of-thought can solve them. arXiv preprint arXiv:2210.09261, 2022.\n[24] Alon Talmor, Jonathan Herzig, Nicholas Lourie, and Jonathan Berant. Commonsenseqa: A question answering challenge targeting commonsense knowledge. arXiv preprint arXiv:1811.00937, 2018.\n[25] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al. Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971, 2023.\n[26] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al."
 "agents__47","platform-docs-public/public/agents/agents.md","Conversations","event: message.output.delta
 data: {""type"":""message.output.delta"",""output_index"":1,""id"":""msg_067f2a9925d674ea8000e63c68ae0474"",""content_index"":0,""model"":""mistral-medium-2505"",""agent_id"":""ag_067f2a39ddd67bf68000fa921bc0c25d"",""role"":""assistant"",""content"":"" last""}"
 "document_library__45","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<Tabs groupId=""code"">
@@ -4001,6 +4001,7 @@ for (const doc of docList.data) {
 }
 ```
   </TabItem>"
+"document_library__54","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","6 \\%}$ | $18.9 \\%$ | $35.4 \\%$ | $6.0 \\%$ | $34.3 \\%$  |\n|  Code-Llama 7B | Finetuned | $36.9 \\%$ | $62.9 \\%$ | $62.3 \\%$ | $72.8 \\%$ | $59.4 \\%$ | $34.5 \\%$ | $11.0 \\%$ | $34.9 \\%$ | $\\mathbf{3 1 . 1 \\%}$ | $\\mathbf{5 2 . 5 \\%}$ | $5.2 \\%$ | $20.8 \\%$  |\n|  Mistral 7B | Pretrained | $\\mathbf{6 0 . 1 \\%}$ | $\\mathbf{8 1 . 3 \\%}$ | $\\mathbf{7 5 . 3 \\%}$ | $\\mathbf{8 3 . 0 \\%}$ | $\\mathbf{8 0 . 0 \\%}$ | $\\mathbf{5 5 . 5 \\%}$ | $\\mathbf{2 8 . 8 \\%}$ | $\\mathbf{6 9 ."
 "mcp__7","platform-docs-public/public/agents/tools/mcp.md","MCP","```python
     # Define parameters for the local MCP server
     server_params = StdioServerParameters(
@@ -4017,7 +4018,6 @@ for (const doc of docList.data) {
         description="""",
     )
 ```"
-"document_library__54","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","6 \\%}$ | $18.9 \\%$ | $35.4 \\%$ | $6.0 \\%$ | $34.3 \\%$  |\n|  Code-Llama 7B | Finetuned | $36.9 \\%$ | $62.9 \\%$ | $62.3 \\%$ | $72.8 \\%$ | $59.4 \\%$ | $34.5 \\%$ | $11.0 \\%$ | $34.9 \\%$ | $\\mathbf{3 1 . 1 \\%}$ | $\\mathbf{5 2 . 5 \\%}$ | $5.2 \\%$ | $20.8 \\%$  |\n|  Mistral 7B | Pretrained | $\\mathbf{6 0 . 1 \\%}$ | $\\mathbf{8 1 . 3 \\%}$ | $\\mathbf{7 5 . 3 \\%}$ | $\\mathbf{8 3 . 0 \\%}$ | $\\mathbf{8 0 . 0 \\%}$ | $\\mathbf{5 5 . 5 \\%}$ | $\\mathbf{2 8 . 8 \\%}$ | $\\mathbf{6 9 ."
 "code_interpreter__1","platform-docs-public/public/agents/tools/built-in/code_interpreter.md","Code Interpreter","<Image
   url={['/img/code_interpreter_connector.png', '/img/code_interpreter_connector_dark.png']}
   alt=""code_interpreter_graph""
@@ -4037,36 +4037,6 @@ with open(file_path, ""rb"") as file_content:
         file=File(fileName=""mistral7b.pdf"", content=file_content),
     )
 ```"
-"document_library__24","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","</TabItem>
-      <TabItem value=""typescript"" label=""typescript"">
-
-```typescript
-    let libraries = await client.beta.libraries.list();
-
-    for (const library of libraries.data)
-    {
-        console.log(`${library.name} with ${library.nbDocuments} documents`);
-    }
-    ```
-      </TabItem>
-      <TabItem value=""curl"" label=""curl"">"
-"image_generation__4","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","<Tabs groupId=""code"">
-  <TabItem value=""python"" label=""python"" default>
-
-```py
-image_agent = client.beta.agents.create(
-    model=""mistral-medium-2505"",
-    name=""Image Generation Agent"",
-    description=""Agent used to generate images."",
-    instructions=""Use the image generation tool when you have to create images."",
-    tools=[{""type"": ""image_generation""}],
-    completion_args={
-        ""temperature"": 0.3,
-        ""top_p"": 0.95,
-    }
-)
-```
-  </TabItem>"
 "agents__43","platform-docs-public/public/agents/agents.md","Conversations (cont.) (cont.) (cont.)","""role"": ""assistant""
     }
   ],
@@ -4107,11 +4077,36 @@ You can only restart conversations on which you used the `append()` method at le
         conversation_id=response.conversation_id,
         inputs=""Translate to French.""
     )"
-"agents__45","platform-docs-public/public/agents/agents.md","Conversations","event: tool.execution.started
-data: {""type"":""tool.execution.started"",""output_index"":0,""id"":""tool_exec_067f2a98ca357c8b8000ea212104b290"",""name"":""web_search""}
+"document_library__24","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","</TabItem>
+      <TabItem value=""typescript"" label=""typescript"">
 
-event: tool.execution.done
-data: {""type"":""tool.execution.done"",""output_index"":0,""id"":""tool_exec_067f2a98ca357c8b8000ea212104b290"",""name"":""web_search""}"
+```typescript
+    let libraries = await client.beta.libraries.list();
+
+    for (const library of libraries.data)
+    {
+        console.log(`${library.name} with ${library.nbDocuments} documents`);
+    }
+    ```
+      </TabItem>
+      <TabItem value=""curl"" label=""curl"">"
+"image_generation__4","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","<Tabs groupId=""code"">
+  <TabItem value=""python"" label=""python"" default>
+
+```py
+image_agent = client.beta.agents.create(
+    model=""mistral-medium-2505"",
+    name=""Image Generation Agent"",
+    description=""Agent used to generate images."",
+    instructions=""Use the image generation tool when you have to create images."",
+    tools=[{""type"": ""image_generation""}],
+    completion_args={
+        ""temperature"": 0.3,
+        ""top_p"": 0.95,
+    }
+)
+```
+  </TabItem>"
 "websearch__4","platform-docs-public/public/agents/tools/built-in/websearch.md","Websearch","<Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>
 
@@ -4129,6 +4124,11 @@ websearch_agent = client.beta.agents.create(
 )
 ```
   </TabItem>"
+"agents__45","platform-docs-public/public/agents/agents.md","Conversations","event: tool.execution.started
+data: {""type"":""tool.execution.started"",""output_index"":0,""id"":""tool_exec_067f2a98ca357c8b8000ea212104b290"",""name"":""web_search""}
+
+event: tool.execution.done
+data: {""type"":""tool.execution.done"",""output_index"":0,""id"":""tool_exec_067f2a98ca357c8b8000ea212104b290"",""name"":""web_search""}"
 "handoffs__27","platform-docs-public/public/agents/handoffs.md","Handoffs","The second example asks for the European central bank interest rate and to plot a graph of the compounded interest. Now we require a local function call since the `ecb-interest-rate-agent` will surelly be required."
 "image_generation__14","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","</TabItem>
 </Tabs>
@@ -4148,17 +4148,6 @@ const websearchAgent = await client.beta.agents.create({
 });
 ```
   </TabItem>"
-"image_generation__20","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","</TabItem>
-  <TabItem value=""curl"" label=""curl"">
-
-```bash
-curl --location ""https://api.mistral.ai/v1/files/<file_id>/content"" \
-     --header 'Accept: application/octet-stream' \
-     --header 'Accept-Encoding: gzip, deflate, zstd' \
-     --header ""Authorization: Bearer $MISTRAL_API_KEY""
-```
-  </TabItem>
-</Tabs>"
 "agents__10","platform-docs-public/public/agents/agents.md","Agent Creation and Management","</TabItem>
 
 <TabItem value=""output"" label=""output"">
@@ -4190,6 +4179,17 @@ curl --location ""https://api.mistral.ai/v1/files/<file_id>/content"" \
 }
 ```
 </TabItem>
+</Tabs>"
+"image_generation__20","platform-docs-public/public/agents/tools/built-in/image_generation.md","Image Generation","</TabItem>
+  <TabItem value=""curl"" label=""curl"">
+
+```bash
+curl --location ""https://api.mistral.ai/v1/files/<file_id>/content"" \
+     --header 'Accept: application/octet-stream' \
+     --header 'Accept-Encoding: gzip, deflate, zstd' \
+     --header ""Authorization: Bearer $MISTRAL_API_KEY""
+```
+  </TabItem>
 </Tabs>"
 "document_library__78","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<TabItem value=""curl"" label=""curl"">
 
@@ -4326,13 +4326,6 @@ curl --location ""https://api.mistral.ai/v1/conversations"" \
 Our workflow and behavior are defined, now we can run it.
 
 We created 5 agents, some of them have access to built-in tools, and others to local tools like `get_european_central_bank_interest_rate`."
-"mcp__3","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h2"" variant=""secondary"" sectionId=""mcp-setup"">MCP Setup</SectionTab>
-
-Below you can find examples of how to set up and use the MCP Client with our Python SDK.
-
-<ExplorerTabs id=""mcp-setup"" groupId=""code"">
-  <ExplorerTab value=""local-mcp"" label=""Local MCP Server"" default>
-    Here is how to create an agent that uses a local MCP server to fetch weather information based on a user's location, combining MCP integration."
 "document_library__72","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library","<Tabs groupId=""type"">
       <TabItem value=""library"" label=""library"" default>
 
@@ -4341,6 +4334,13 @@ curl --location --request DELETE ""https://api.mistral.ai/v1/libraries/<library_
      --header ""Accept: application/json"" \
      --header ""Authorization: Bearer $MISTRAL_API_KEY""
 ```"
+"mcp__3","platform-docs-public/public/agents/tools/mcp.md","MCP","<SectionTab as=""h2"" variant=""secondary"" sectionId=""mcp-setup"">MCP Setup</SectionTab>
+
+Below you can find examples of how to set up and use the MCP Client with our Python SDK.
+
+<ExplorerTabs id=""mcp-setup"" groupId=""code"">
+  <ExplorerTab value=""local-mcp"" label=""Local MCP Server"" default>
+    Here is how to create an agent that uses a local MCP server to fetch weather information based on a user's location, combining MCP integration."
 "function_calling__6","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","Once defined, we provide a Shema corresponding to the same function.
 <Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"">
@@ -4405,13 +4405,6 @@ for doc in doc_list:
     print(f""{doc.name}: {doc.extension} with {doc.number_of_pages} pages."")
     print(f""{doc.summary}"")
 ```"
-"built-in__10","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","<SectionTab as=""h2"" variant=""secondary"" sectionId=""available-built-in-tools"">Available Built-In Tools</SectionTab>
-
-Currently, our API has 4 built-in tools, here you can find how to use them in details:
-- [Websearch](built-in/websearch)
-- [Code Interpreter](built-in/code_interpreter)
-- [Image Generation](built-in/image_generation)
-- [Document Library](built-in/document_library)"
 "agents__30","platform-docs-public/public/agents/agents.md","Conversations","<Tabs groupId=""code"">
   <TabItem value=""python"" label=""python"" default>
 
@@ -4531,8 +4524,15 @@ curl --location ""https://api.mistral.ai/v1/conversations?page=0&page_size=100""
     ""tools"": [],
     ""completion_args"": {
     ""stop"": null,"
+"document_library__57","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Using this prompt allows the user to move on the Pareto front of model utility / guardrails enforcement, as indicated in Table 4.\n\nAlways assist with care, respect, and truth. Respond with utmost utility yet securely. Avoid harmful, unethical, prejudiced, or negative content. Ensure replies promote fairness and positivity.\n\nWe use a set of 175 unsafe prompts for evaluating safety. With the recommended system prompt, the model properly declines to answer $100 \\%$ of the harmful questions.\nAs an illustration, we provide in Table 5 the answers of both Mistral 7B - Instruct and Llama 2 Chat 13B to the question How to kill a linux process with system prompts activated. We observe that Mistral 7B provides a correct response while Llama 2 declines to answer. Note that on this specific question, both models answer correctly when system prompts are deactivated.\n\n| Guardrails | MT Bench |\n| :--: | :--: |\n| No system prompt | $6.84 \\pm 0.07$ |\n| Llama 2 system prompt | $6.38 \\pm 0.07$ |\n| Mistral system prompt | $6.58 \\pm 0.05$ |\n\nTable 4: System prompts. Mean official MT Bench score over 10 iterations with standard deviation for Mistral 7B - Instruct. For reference, Llama 213B - Chat reports official results of 6.65 .\n\n### 5.2 Content moderation with self-reflection\n\nMistral 7B - Instruct can be used as a content moderator: the model itself is able to accurately classify a user prompt or its generated answer as being either acceptable or falling into one of the following categories: Illegal activities such as terrorism, child abuse or fraud; Hateful, harassing or violent content such as discrimination, self-harm or bullying; Unqualified advice for instance in legal, medical or financial domains.| Model | Answer |\n| --- | --- |\n| Mistral 7B - Instruct with Mistral system prompt | To kill a Linux process, you can use the `kill` command followed by the process ID (PID) of the process you want to terminate. For example, to kill process with PID 1234, you would run the command `kill 1234`."
 "function_calling__3","platform-docs-public/public/agents/tools/function_calling.md","Function Calling","<SectionTab as=""h1"" sectionId=""creating-an-agent-with-function-calling"">Creating an Agent</SectionTab>
 
 To use function calling, we can either create an Agent or use the Conversations API directly without.
 Below we will show you how to create an Agent with function calling and use it."
-"document_library__57","platform-docs-public/public/agents/tools/built-in/document_library.md","Document Library (cont.)","Using this prompt allows the user to move on the Pareto front of model utility / guardrails enforcement, as indicated in Table 4.\n\nAlways assist with care, respect, and truth. Respond with utmost utility yet securely. Avoid harmful, unethical, prejudiced, or negative content. Ensure replies promote fairness and positivity.\n\nWe use a set of 175 unsafe prompts for evaluating safety. With the recommended system prompt, the model properly declines to answer $100 \\%$ of the harmful questions.\nAs an illustration, we provide in Table 5 the answers of both Mistral 7B - Instruct and Llama 2 Chat 13B to the question How to kill a linux process with system prompts activated. We observe that Mistral 7B provides a correct response while Llama 2 declines to answer. Note that on this specific question, both models answer correctly when system prompts are deactivated.\n\n| Guardrails | MT Bench |\n| :--: | :--: |\n| No system prompt | $6.84 \\pm 0.07$ |\n| Llama 2 system prompt | $6.38 \\pm 0.07$ |\n| Mistral system prompt | $6.58 \\pm 0.05$ |\n\nTable 4: System prompts. Mean official MT Bench score over 10 iterations with standard deviation for Mistral 7B - Instruct. For reference, Llama 213B - Chat reports official results of 6.65 .\n\n### 5.2 Content moderation with self-reflection\n\nMistral 7B - Instruct can be used as a content moderator: the model itself is able to accurately classify a user prompt or its generated answer as being either acceptable or falling into one of the following categories: Illegal activities such as terrorism, child abuse or fraud; Hateful, harassing or violent content such as discrimination, self-harm or bullying; Unqualified advice for instance in legal, medical or financial domains.| Model | Answer |\n| --- | --- |\n| Mistral 7B - Instruct with Mistral system prompt | To kill a Linux process, you can use the `kill` command followed by the process ID (PID) of the process you want to terminate. For example, to kill process with PID 1234, you would run the command `kill 1234`."
+"built-in__10","platform-docs-public/public/agents/tools/built-in.md","Built-In Tools","<SectionTab as=""h2"" variant=""secondary"" sectionId=""available-built-in-tools"">Available Built-In Tools</SectionTab>
+
+Currently, our API has 4 built-in tools, here you can find how to use them in details:
+- [Websearch](built-in/websearch)
+- [Code Interpreter](built-in/code_interpreter)
+- [Image Generation](built-in/image_generation)
+- [Document Library](built-in/document_library)"
