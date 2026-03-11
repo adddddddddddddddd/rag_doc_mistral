@@ -7,7 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.135.1",
     "fire>=0.7.1",
+    "langchain-mistralai>=1.1.1",
     "mistralai>=1.12.4",
     "python-dotenv>=1.2.2",
+    "ragas>=0.4.3",
     "uvicorn[standard]>=0.41.0",
 ]
