@@ -3,8 +3,8 @@ feed.py — orchestrates chunking, embedding, and indexing of markdown files int
 
 Usage:
     uv run python -m backend.feed
-    uv run python -m backend.feed --include_folders="agents"
-    uv run python -m backend.feed --exclude_folders="old"
+    uv run python -m backend.feed --include_folders="["agents"]"
+    uv run python -m backend.feed --exclude_folders="["deprecated"]"
 """
 
 import hashlib
