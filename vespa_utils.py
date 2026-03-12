@@ -9,8 +9,8 @@ import urllib.error
 from chunker import Chunk
 import fire
 
-VESPA_URL = "http://localhost:8081"
-VESPA_CONFIG_URL = "http://localhost:19072"
+VESPA_URL = "http://localhost:8080"
+VESPA_CONFIG_URL = "http://localhost:19071"
 APP_PATH = "my-vespa-app"
 NAMESPACE = "docs"
 DOC_TYPE = "doc"
@@ -181,6 +181,51 @@ def search(
         for h in hits
     ]
     
+def search_with_section(
+    query_embedding: list[float],
+    section_paths: list[str],
+    top_k: int = 5,
+    rank_profile: str = "semantic",
+) -> list[dict]:
+    """
+    Run an ANN search against Vespa filtered to documents whose source_file
+    matches one of the given section_paths.
+    Returns a list of hit dicts with id, heading, body, source_file, relevance.
+    """
+    path_conditions = " or ".join(
+        f'source_file contains "{p}"' for p in section_paths
+    )
+    body = {
+        "yql": f'select id, heading, body, source_file from {DOC_TYPE} where '
+               f'({path_conditions}) and '
+               f'{{targetHits: {top_k}}}nearestNeighbor(embedding, q)',
+        "input.query(q)": query_embedding,
+        "ranking": rank_profile,
+        "hits": top_k,
+    }
+    payload = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        f"{VESPA_URL}/search/",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read())
+
+    hits = data.get("root", {}).get("children", [])
+    return [
+        {
+            "id": h["fields"].get("id"),
+            "heading": h["fields"].get("heading"),
+            "body": h["fields"].get("body"),
+            "source_file": h["fields"].get("source_file"),
+            "relevance": h.get("relevance"),
+        }
+        for h in hits
+    ]
+
+
 if __name__ == "__main__":
     fire.Fire({
         "deploy_app": deploy_app,
@@ -188,4 +233,5 @@ if __name__ == "__main__":
         "feed_all": feed_all,
         "file_already_indexed": file_already_indexed,
         "search": search,
+        "search_with_section": search_with_section,
     })

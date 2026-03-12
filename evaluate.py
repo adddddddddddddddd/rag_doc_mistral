@@ -58,6 +58,7 @@ from rag import SYSTEM_PROMPT, rag_from_hits
 load_dotenv()
 
 EVAL_MODEL = "mistral-large-latest"
+FAITHFULNESS_EVALUATION_MODEL = "magistral-small-2509"
 DEFAULT_DATASET = "eval_dataset.json"
 
 QUESTION_PROMPT = """You are creating an evaluation dataset for a RAG system.
@@ -76,6 +77,7 @@ Respond with only the answer, no preamble."""
 
 
 # ─── Vespa document visit ─────────────────────────────────────────────────────
+
 
 def _visit_chunks(max_docs: int = 500) -> list[dict]:
     """
@@ -98,16 +100,20 @@ def _visit_chunks(max_docs: int = 500) -> list[dict]:
             with urllib.request.urlopen(url) as resp:
                 data = json.loads(resp.read())
         except urllib.error.HTTPError as e:
-            raise RuntimeError(f"Vespa visit failed [{e.code}]: {e.read().decode()}") from e
+            raise RuntimeError(
+                f"Vespa visit failed [{e.code}]: {e.read().decode()}"
+            ) from e
 
         for doc in data.get("documents", []):
             f = doc.get("fields", {})
-            chunks.append({
-                "id": f.get("id"),
-                "heading": f.get("heading", ""),
-                "body": f.get("body", ""),
-                "source_file": f.get("source_file", ""),
-            })
+            chunks.append(
+                {
+                    "id": f.get("id"),
+                    "heading": f.get("heading", ""),
+                    "body": f.get("body", ""),
+                    "source_file": f.get("source_file", ""),
+                }
+            )
 
         continuation = data.get("continuation")
         if not continuation:
@@ -118,7 +124,10 @@ def _visit_chunks(max_docs: int = 500) -> list[dict]:
 
 # ─── Phase 1: generate ───────────────────────────────────────────────────────
 
-def generate(samples: int = 200, out: str = DEFAULT_DATASET, delay: float = 0.3) -> None:
+
+def generate(
+    samples: int = 200, out: str = DEFAULT_DATASET, delay: float = 0.3
+) -> None:
     """
     Sample chunks from Vespa, generate one question per chunk, save to JSON.
 
@@ -159,13 +168,15 @@ def generate(samples: int = 200, out: str = DEFAULT_DATASET, delay: float = 0.3)
             print(f"  ⚠ Skipping chunk {chunk['id']}: {e}")
             continue
 
-        dataset.append({
-            "chunk_id": chunk["id"],
-            "source_file": chunk["source_file"],
-            "heading": chunk["heading"],
-            "body": chunk["body"],
-            "question": question,
-        })
+        dataset.append(
+            {
+                "chunk_id": chunk["id"],
+                "source_file": chunk["source_file"],
+                "heading": chunk["heading"],
+                "body": chunk["body"],
+                "question": question,
+            }
+        )
 
         if (i + 1) % 10 == 0 or (i + 1) == len(chunks):
             with open(out, "w") as f:
@@ -178,6 +189,7 @@ def generate(samples: int = 200, out: str = DEFAULT_DATASET, delay: float = 0.3)
 
 
 # ─── Phase 1b: add_ground_truth ──────────────────────────────────────────────
+
 
 def add_ground_truth(
     dataset: str = DEFAULT_DATASET,
@@ -196,7 +208,9 @@ def add_ground_truth(
         delay:   Seconds between Mistral API calls to avoid rate limiting (default: 0.3)
     """
     if not os.path.exists(dataset):
-        raise FileNotFoundError(f"Dataset not found: {dataset!r}. Run 'generate' first.")
+        raise FileNotFoundError(
+            f"Dataset not found: {dataset!r}. Run 'generate' first."
+        )
 
     out = out or dataset
 
@@ -204,8 +218,10 @@ def add_ground_truth(
         entries = json.load(f)
 
     to_process = [e for e in entries if not e.get("ground_truth_answer")]
-    print(f"📝 Adding ground truth answers | {len(to_process)} entries to process "
-          f"({len(entries) - len(to_process)} already done)\n")
+    print(
+        f"📝 Adding ground truth answers | {len(to_process)} entries to process "
+        f"({len(entries) - len(to_process)} already done)\n"
+    )
 
     if not to_process:
         print("✅ All entries already have ground_truth_answer.")
@@ -228,7 +244,9 @@ def add_ground_truth(
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.0,
             )
-            index[entry["chunk_id"]]["ground_truth_answer"] = resp.choices[0].message.content.strip()
+            index[entry["chunk_id"]]["ground_truth_answer"] = resp.choices[
+                0
+            ].message.content.strip()
         except Exception as e:
             print(f"  ⚠ Skipping {entry['chunk_id']}: {e}")
             continue
@@ -245,7 +263,10 @@ def add_ground_truth(
 
 # ─── Phase 2: evaluate ───────────────────────────────────────────────────────
 
-def evaluate(dataset: str = DEFAULT_DATASET, top: int = 5, mode: str = "hybrid") -> None:
+
+def evaluate(
+    dataset: str = DEFAULT_DATASET, top: int = 5, mode: str = "hybrid"
+) -> None:
     """
     Compute Precision@k for each question in the dataset.
 
@@ -255,7 +276,9 @@ def evaluate(dataset: str = DEFAULT_DATASET, top: int = 5, mode: str = "hybrid")
         mode:    Retrieval mode: 'semantic' or 'hybrid' (default: hybrid)
     """
     if not os.path.exists(dataset):
-        raise FileNotFoundError(f"Dataset not found: {dataset!r}. Run 'generate' first.")
+        raise FileNotFoundError(
+            f"Dataset not found: {dataset!r}. Run 'generate' first."
+        )
 
     with open(dataset) as f:
         entries = json.load(f)
@@ -280,16 +303,24 @@ def evaluate(dataset: str = DEFAULT_DATASET, top: int = 5, mode: str = "hybrid")
             print(f"  [{i + 1}/{len(entries)}] Precision@{top} so far: {current_p:.3f}")
 
     precision = hits_at_k / len(entries)
-    print(f"\n✅ Precision@{top} ({mode}): {precision:.3f}  ({hits_at_k}/{len(entries)} hits)")
+    print(
+        f"\n✅ Precision@{top} ({mode}): {precision:.3f}  ({hits_at_k}/{len(entries)} hits)"
+    )
 
     # Save detailed results
     results_path = dataset.replace(".json", f"_results_top{top}_{mode}.json")
     with open(results_path, "w") as f:
-        json.dump({"precision_at_k": precision, "k": top, "mode": mode, "results": results}, f, indent=2, ensure_ascii=False)
+        json.dump(
+            {"precision_at_k": precision, "k": top, "mode": mode, "results": results},
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
     print(f"📄 Detailed results saved to {results_path!r}")
 
 
 # ─── Phase 2b: build_eval_json ───────────────────────────────────────────────
+
 
 def build_eval_json(
     dataset: str = DEFAULT_DATASET,
@@ -318,7 +349,9 @@ def build_eval_json(
         delay:   Seconds between Mistral API calls (default: 0.3)
     """
     if not os.path.exists(dataset):
-        raise FileNotFoundError(f"Dataset not found: {dataset!r}. Run 'generate' first.")
+        raise FileNotFoundError(
+            f"Dataset not found: {dataset!r}. Run 'generate' first."
+        )
 
     if out is None:
         out = f"eval_intermediate_top{top}_{mode}.json"
@@ -355,35 +388,37 @@ def build_eval_json(
         retrieved_ids = [h["id"] for h in hits]
         recall = entry["chunk_id"] in retrieved_ids
 
-        records.append({
-            # Query
-            "question": question,
-            # Ground truth (from generate phase)
-            "ground_truth_answer": entry.get("ground_truth_answer"),
-            "ground_truth_chunk_id": entry["chunk_id"],
-            "ground_truth_source_file": entry["source_file"],
-            "ground_truth_heading": entry["heading"],
-            "ground_truth_body": entry["body"],
-            # Retrieval
-            "retrieved_hits": [
-                {
-                    "id": h["id"],
-                    "heading": h["heading"],
-                    "body": h["body"],
-                    "source_file": h["source_file"],
-                    "relevance": h.get("relevance"),
-                }
-                for h in hits
-            ],
-            "retrieved_ids": retrieved_ids,
-            # Generation
-            "rag_answer": rag_answer,
-            # Retrieval metric
-            "recall_at_k": recall,
-            # Run metadata
-            "top_k": top,
-            "mode": mode,
-        })
+        records.append(
+            {
+                # Query
+                "question": question,
+                # Ground truth (from generate phase)
+                "ground_truth_answer": entry.get("ground_truth_answer"),
+                "ground_truth_chunk_id": entry["chunk_id"],
+                "ground_truth_source_file": entry["source_file"],
+                "ground_truth_heading": entry["heading"],
+                "ground_truth_body": entry["body"],
+                # Retrieval
+                "retrieved_hits": [
+                    {
+                        "id": h["id"],
+                        "heading": h["heading"],
+                        "body": h["body"],
+                        "source_file": h["source_file"],
+                        "relevance": h.get("relevance"),
+                    }
+                    for h in hits
+                ],
+                "retrieved_ids": retrieved_ids,
+                # Generation
+                "rag_answer": rag_answer,
+                # Retrieval metric
+                "recall_at_k": recall,
+                # Run metadata
+                "top_k": top,
+                "mode": mode,
+            }
+        )
 
         if (i + 1) % 10 == 0 or (i + 1) == len(entries):
             with open(out, "w") as f:
@@ -392,14 +427,19 @@ def build_eval_json(
 
         time.sleep(delay)
 
-    recall_at_k = sum(r["recall_at_k"] for r in records) / len(records) if records else 0.0
+    recall_at_k = (
+        sum(r["recall_at_k"] for r in records) / len(records) if records else 0.0
+    )
     print(f"\n✅ Saved {len(records)} records to {out!r}")
     print(f"   Recall@{top} ({mode}): {recall_at_k:.3f}")
 
 
 # ─── Phase 2c: score_recall_at_k ─────────────────────────────────────────────
 
-def score_recall_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json") -> float:
+
+def score_recall_at_k(
+    intermediate: str = "eval_intermediate_top5_hybrid.json",
+) -> float:
     """
     Compute Recall@k from the intermediate eval JSON.
 
@@ -414,7 +454,9 @@ def score_recall_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json") 
         Mean Recall@k across all records.
     """
     if not os.path.exists(intermediate):
-        raise FileNotFoundError(f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first.")
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
 
     with open(intermediate) as f:
         records = json.load(f)
@@ -430,7 +472,10 @@ def score_recall_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json") 
 
 # ─── Phase 2d: score_precision_at_k ──────────────────────────────────────────
 
-def score_precision_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json") -> float:
+
+def score_precision_at_k(
+    intermediate: str = "eval_intermediate_top5_hybrid.json",
+) -> float:
     """
     Compute Precision@k from the intermediate eval JSON.
 
@@ -445,7 +490,9 @@ def score_precision_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json
         Mean Precision@k across all records.
     """
     if not os.path.exists(intermediate):
-        raise FileNotFoundError(f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first.")
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
 
     with open(intermediate) as f:
         records = json.load(f)
@@ -455,7 +502,9 @@ def score_precision_at_k(intermediate: str = "eval_intermediate_top5_hybrid.json
     hits = sum(r["recall_at_k"] for r in records)
     precision = (hits / k) / len(records)
 
-    print(f"📊 Precision@{k} ({mode}): {precision:.3f}  ({hits}/{len(records)} hits, 1/{k} per hit)")
+    print(
+        f"📊 Precision@{k} ({mode}): {precision:.3f}  ({hits}/{len(records)} hits, 1/{k} per hit)"
+    )
     return precision
 
 
@@ -471,7 +520,7 @@ Answer:
 Respond with a JSON array of strings only. No explanation, no markdown fences."""
 
 _SUPPORT_PROMPT = """\
-You are a faithfulness judge. Is the following claim fully supported by the retrieved documentation contexts below?
+You are a faithfulness judge analysing the response of another LLM. Your task is to determine whether the following claim is fully supported by the retrieved documentation contexts below or if it is made up.
 
 Contexts:
 {contexts}
@@ -527,13 +576,49 @@ def _llm_json_list(client, prompt: str) -> list[str]:
         return []
 
 
-def _llm_yn(client, prompt: str) -> bool:
+def _llm_yn(client, prompt: str, model: str = EVAL_MODEL, reasoning_model : bool = False) -> bool:
     """Call the LLM with a yes/no question, return True for 'yes'."""
-    resp = client.chat.complete(
-        model=EVAL_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,
-    )
+    if reasoning_model:
+        resp = client.chat.complete(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "# HOW YOU SHOULD THINK AND ANSWER\n\nFirst draft your thinking process (inner monologue) until you arrive at a response. Format your response using Markdown, and use LaTeX for any mathematical equations. Write both your thoughts and the response in the same language as the input.\n\nYour thinking process must follow the template below:",
+                        },
+                        {
+                            "type": "thinking",
+                            "thinking": [
+                                {
+                                    "type": "text",
+                                    "text": "Your thoughts or/and draft, like working through an exercise on scratch paper. Be as casual and as long as you want until you are confident to generate the response to the user.",
+                                }
+                            ],
+                        },
+                        {
+                            "type": "text",
+                            "text": "Here, provide a self-contained response.",
+                        },
+                    ],
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,
+        )
+        text_answer = ""
+        for content in resp.choices[0].message.content:
+            if content.type == "text":
+                text_answer += content.text
+        return text_answer.strip().lower().startswith("yes")
+    else:
+        resp = client.chat.complete(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+        )
     return resp.choices[0].message.content.strip().lower().startswith("yes")
 
 
@@ -554,6 +639,7 @@ def _llm_float(client, prompt: str) -> float:
 
 # ─── Phase 2c: score_faithfulness ────────────────────────────────────────────
 
+
 def score_faithfulness(
     intermediate: str = "eval_intermediate_top5_hybrid.json",
     delay: float = 0.3,
@@ -571,17 +657,23 @@ def score_faithfulness(
         delay:        Seconds between API calls (default: 0.3)
     """
     if not os.path.exists(intermediate):
-        raise FileNotFoundError(f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first.")
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
 
     with open(intermediate) as f:
         records = json.load(f)
 
     to_process = [r for r in records if "faithfulness" not in r]
     done = len(records) - len(to_process)
-    print(f"🔍 Scoring faithfulness | {len(to_process)} to process ({done} already done)\n")
+    print(
+        f"🔍 Scoring faithfulness | {len(to_process)} to process ({done} already done)\n"
+    )
 
     if not to_process:
-        scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
+        scored = [
+            r["faithfulness"] for r in records if r.get("faithfulness") is not None
+        ]
         print(f"✅ All done. Mean faithfulness: {sum(scored) / len(scored):.3f}")
         return
 
@@ -596,7 +688,9 @@ def score_faithfulness(
             for j, h in enumerate(record["retrieved_hits"])
         )
 
-        claims = _llm_json_list(client, _CLAIMS_PROMPT.format(answer=record["rag_answer"]))
+        claims = _llm_json_list(
+            client, _CLAIMS_PROMPT.format(answer=record["rag_answer"])
+        )
         time.sleep(delay)
 
         if not claims:
@@ -607,7 +701,12 @@ def score_faithfulness(
         supported = 0
         claim_details = []
         for claim in claims:
-            yn = _llm_yn(client, _SUPPORT_PROMPT.format(contexts=contexts, claim=claim))
+            yn = _llm_yn(
+                client=client,
+                prompt=_SUPPORT_PROMPT.format(contexts=contexts, claim=claim),
+                model=FAITHFULNESS_EVALUATION_MODEL,
+                reasoning_model=True,
+            )
             claim_details.append({"claim": claim, "supported": yn})
             supported += int(yn)
             time.sleep(delay)
@@ -619,16 +718,21 @@ def score_faithfulness(
         if (i + 1) % 10 == 0 or (i + 1) == len(to_process):
             with open(intermediate, "w") as f:
                 json.dump(records, f, indent=2, ensure_ascii=False)
-            print(f"  [{i + 1}/{len(to_process)}] faithfulness={score:.2f} ({supported}/{len(claims)} claims supported)")
+            print(
+                f"  [{i + 1}/{len(to_process)}] faithfulness={score:.2f} ({supported}/{len(claims)} claims supported)"
+            )
 
     with open(intermediate, "w") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
 
     scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
-    print(f"\n✅ Faithfulness scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)")
+    print(
+        f"\n✅ Faithfulness scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
+    )
 
 
 # ─── Phase 2d: score_answer_relevancy ────────────────────────────────────────
+
 
 def score_answer_relevancy(
     intermediate: str = "eval_intermediate_top5_hybrid.json",
@@ -646,17 +750,25 @@ def score_answer_relevancy(
         delay:        Seconds between API calls (default: 0.3)
     """
     if not os.path.exists(intermediate):
-        raise FileNotFoundError(f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first.")
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
 
     with open(intermediate) as f:
         records = json.load(f)
 
     to_process = [r for r in records if "answer_relevancy" not in r]
     done = len(records) - len(to_process)
-    print(f"🔍 Scoring answer relevancy | {len(to_process)} to process ({done} already done)\n")
+    print(
+        f"🔍 Scoring answer relevancy | {len(to_process)} to process ({done} already done)\n"
+    )
 
     if not to_process:
-        scored = [r["answer_relevancy"] for r in records if r.get("answer_relevancy") is not None]
+        scored = [
+            r["answer_relevancy"]
+            for r in records
+            if r.get("answer_relevancy") is not None
+        ]
         print(f"✅ All done. Mean answer relevancy: {sum(scored) / len(scored):.3f}")
         return
 
@@ -667,7 +779,9 @@ def score_answer_relevancy(
         cid = record["ground_truth_chunk_id"]
         score = _llm_float(
             client,
-            _RELEVANCY_PROMPT.format(question=record["question"], answer=record["rag_answer"]),
+            _RELEVANCY_PROMPT.format(
+                question=record["question"], answer=record["rag_answer"]
+            ),
         )
         index[cid]["answer_relevancy"] = score
         time.sleep(delay)
@@ -680,11 +794,16 @@ def score_answer_relevancy(
     with open(intermediate, "w") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
 
-    scored = [r["answer_relevancy"] for r in records if r.get("answer_relevancy") is not None]
-    print(f"\n✅ Answer relevancy scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)")
+    scored = [
+        r["answer_relevancy"] for r in records if r.get("answer_relevancy") is not None
+    ]
+    print(
+        f"\n✅ Answer relevancy scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
+    )
 
 
 # ─── Phase 2e: score_completeness ────────────────────────────────────────────
+
 
 def score_completeness(
     intermediate: str = "eval_intermediate_top5_hybrid.json",
@@ -703,17 +822,23 @@ def score_completeness(
         delay:        Seconds between API calls (default: 0.3)
     """
     if not os.path.exists(intermediate):
-        raise FileNotFoundError(f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first.")
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
 
     with open(intermediate) as f:
         records = json.load(f)
 
     to_process = [r for r in records if "completeness" not in r]
     done = len(records) - len(to_process)
-    print(f"🔍 Scoring completeness | {len(to_process)} to process ({done} already done)\n")
+    print(
+        f"🔍 Scoring completeness | {len(to_process)} to process ({done} already done)\n"
+    )
 
     if not to_process:
-        scored = [r["completeness"] for r in records if r.get("completeness") is not None]
+        scored = [
+            r["completeness"] for r in records if r.get("completeness") is not None
+        ]
         print(f"✅ All done. Mean completeness: {sum(scored) / len(scored):.3f}")
         return
 
@@ -723,7 +848,9 @@ def score_completeness(
     for i, record in enumerate(to_process):
         cid = record["ground_truth_chunk_id"]
 
-        facts = _llm_json_list(client, _FACTS_PROMPT.format(body=record["ground_truth_body"]))
+        facts = _llm_json_list(
+            client, _FACTS_PROMPT.format(body=record["ground_truth_body"])
+        )
         time.sleep(delay)
 
         if not facts:
@@ -734,7 +861,9 @@ def score_completeness(
         covered = 0
         fact_details = []
         for fact in facts:
-            yn = _llm_yn(client, _COVERAGE_PROMPT.format(answer=record["rag_answer"], fact=fact))
+            yn = _llm_yn(
+                client, _COVERAGE_PROMPT.format(answer=record["rag_answer"], fact=fact)
+            )
             fact_details.append({"fact": fact, "covered": yn})
             covered += int(yn)
             time.sleep(delay)
@@ -746,16 +875,21 @@ def score_completeness(
         if (i + 1) % 10 == 0 or (i + 1) == len(to_process):
             with open(intermediate, "w") as f:
                 json.dump(records, f, indent=2, ensure_ascii=False)
-            print(f"  [{i + 1}/{len(to_process)}] completeness={score:.2f} ({covered}/{len(facts)} facts covered)")
+            print(
+                f"  [{i + 1}/{len(to_process)}] completeness={score:.2f} ({covered}/{len(facts)} facts covered)"
+            )
 
     with open(intermediate, "w") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
 
     scored = [r["completeness"] for r in records if r.get("completeness") is not None]
-    print(f"\n✅ Completeness scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)")
+    print(
+        f"\n✅ Completeness scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
+    )
 
 
 # ─── run_all ─────────────────────────────────────────────────────────────────
+
 
 def run_all(
     dataset: str = DEFAULT_DATASET,
@@ -807,10 +941,12 @@ def run_all(
     with open(intermediate) as f:
         records = json.load(f)
 
-    n     = len(records)
-    faith = [r["faithfulness"]     for r in records if r.get("faithfulness")     is not None]
-    relev = [r["answer_relevancy"] for r in records if r.get("answer_relevancy") is not None]
-    compl = [r["completeness"]     for r in records if r.get("completeness")     is not None]
+    n = len(records)
+    faith = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
+    relev = [
+        r["answer_relevancy"] for r in records if r.get("answer_relevancy") is not None
+    ]
+    compl = [r["completeness"] for r in records if r.get("completeness") is not None]
 
     print(f"\n{sep}")
     print("EVALUATION SUMMARY")
@@ -818,12 +954,42 @@ def run_all(
     print(f"  Records          : {n}")
     print(f"  Recall@{top:<3} ({mode})  : {recall:.3f}")
     print(f"  Precision@{top:<3} ({mode}): {precision:.3f}")
-    if faith: print(f"  Faithfulness     : {sum(faith) / len(faith):.3f}  ({len(faith)} scored)")
-    if relev: print(f"  Ans. relevancy   : {sum(relev) / len(relev):.3f}  ({len(relev)} scored)")
-    if compl: print(f"  Completeness     : {sum(compl) / len(compl):.3f}  ({len(compl)} scored)")
+    if faith:
+        print(
+            f"  Faithfulness     : {sum(faith) / len(faith):.3f}  ({len(faith)} scored)"
+        )
+    if relev:
+        print(
+            f"  Ans. relevancy   : {sum(relev) / len(relev):.3f}  ({len(relev)} scored)"
+        )
+    if compl:
+        print(
+            f"  Completeness     : {sum(compl) / len(compl):.3f}  ({len(compl)} scored)"
+        )
+    with open("README.md", "w") as f:
+        f.write(f"# RAG Evaluation Results\n\n")
+        f.write(f"**Dataset:** {dataset}\n\n")
+        f.write(f"**Records:** {n}\n\n")
+        f.write(f"**Recall@{top} ({mode}):** {recall:.3f}\n\n")
+        f.write(f"**Precision@{top} ({mode}):** {precision:.3f}\n\n")
+        if faith:
+            f.write(
+                f"**Faithfulness:** {sum(faith) / len(faith):.3f}  ({len(faith)} scored)\n\n"
+            )
+        if relev:
+            f.write(
+                f"**Answer Relevancy:** {sum(relev) / len(relev):.3f}  ({len(relev)} scored)\n\n"
+            )
+        if compl:
+            f.write(
+                f"**Completeness:** {sum(compl) / len(compl):.3f}  ({len(compl)} scored)\n\n"
+            )
     print(sep)
 
-def retrieve_items_where_faithfulness_below(record_path: str, threshold: float = 0.5) -> list[dict]:
+
+def retrieve_items_where_faithfulness_below(
+    record_path: str, threshold: float = 0.5
+) -> list[dict]:
     """
     Helper to filter records with faithfulness below a certain threshold.
 
@@ -836,11 +1002,53 @@ def retrieve_items_where_faithfulness_below(record_path: str, threshold: float =
     """
     with open(record_path) as f:
         records = json.load(f)
-    items_where_faithfulness_below = [r for r in records if r.get("faithfulness") is not None and r["faithfulness"] < threshold]
+    items_where_faithfulness_below = [
+        r
+        for r in records
+        if r.get("faithfulness") is not None and r["faithfulness"] < threshold
+    ]
     with open(f"unfaithful_records_below_{threshold}.json", "w") as f:
         json.dump(items_where_faithfulness_below, f, indent=2, ensure_ascii=False)
     return items_where_faithfulness_below
+
+
+# ─── Full pipeline ───────────────────────────────────────────────────────────
+
+
+def run_full_pipeline(
+    samples: int = 200,
+    top: int = 5,
+    mode: str = "hybrid",
+    dataset: str = DEFAULT_DATASET,
+    delay: float = 0.3,
+) -> None:
+    """
+    Run the full eval pipeline end-to-end (assumes Vespa is already indexed):
+        1. Generate eval dataset from indexed chunks
+        2. Add ground truth answers
+        3. Run full evaluation (recall, precision, faithfulness, relevancy, completeness)
+
+    Args:
+        samples: Number of chunks to sample for eval dataset (default: 200)
+        top:     Number of chunks to retrieve per query (default: 5)
+        mode:    Retrieval mode: 'semantic' or 'hybrid' (default: hybrid)
+        dataset: Path to eval dataset JSON (default: eval_dataset.json)
+        delay:   Seconds between Mistral API calls (default: 0.3)
+    """
+    sep = "=" * 60
+
+    print(f"{sep}\nSTEP 1/3 — generate eval dataset ({samples} samples)\n{sep}")
+    generate(samples=samples, out=dataset, delay=delay)
+
+    print(f"\n{sep}\nSTEP 2/3 — add ground truth answers\n{sep}")
+    add_ground_truth(dataset=dataset, delay=delay)
+
+    print(f"\n{sep}\nSTEP 3/3 — evaluate (top={top}, mode={mode})\n{sep}")
+    run_all(dataset=dataset, top=top, mode=mode, delay=delay)
+
+
 # ─── Phase 3: RAGAS evaluation ───────────────────────────────────────────────
+
 
 def ragas_eval(
     dataset: str = DEFAULT_DATASET,
@@ -863,14 +1071,21 @@ def ragas_eval(
         out:     Output file for RAGAS scores (default: ragas_results.json)
     """
     from ragas import evaluate as ragas_evaluate, EvaluationDataset, SingleTurnSample
-    from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
+    from ragas.metrics import (
+        Faithfulness,
+        AnswerRelevancy,
+        ContextPrecision,
+        ContextRecall,
+    )
     from ragas.llms import LangchainLLMWrapper
     from ragas.embeddings import LangchainEmbeddingsWrapper
     from langchain_mistralai import ChatMistralAI
     from langchain_mistralai.embeddings import MistralAIEmbeddings
 
     if not os.path.exists(dataset):
-        raise FileNotFoundError(f"Dataset not found: {dataset!r}. Run 'generate' first.")
+        raise FileNotFoundError(
+            f"Dataset not found: {dataset!r}. Run 'generate' first."
+        )
 
     with open(dataset) as f:
         entries = json.load(f)
@@ -878,7 +1093,9 @@ def ragas_eval(
     if samples:
         entries = entries[:samples]
 
-    print(f"🔍 Running RAGAS evaluation on {len(entries)} entries | top={top} | mode={mode}\n")
+    print(
+        f"🔍 Running RAGAS evaluation on {len(entries)} entries | top={top} | mode={mode}\n"
+    )
 
     api_key = os.environ["MISTRAL_API_KEY"]
     mistral_client = Mistral(api_key=api_key)
@@ -910,17 +1127,22 @@ def ragas_eval(
             model=EVAL_MODEL,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Documentation excerpts:\n\n{context_text}\n\n---\n\nQuestion: {question}"},
+                {
+                    "role": "user",
+                    "content": f"Documentation excerpts:\n\n{context_text}\n\n---\n\nQuestion: {question}",
+                },
             ],
         )
         answer = resp.choices[0].message.content.strip()
 
-        ragas_samples.append(SingleTurnSample(
-            user_input=question,
-            response=answer,
-            retrieved_contexts=contexts,
-            reference=ground_truth,
-        ))
+        ragas_samples.append(
+            SingleTurnSample(
+                user_input=question,
+                response=answer,
+                retrieved_contexts=contexts,
+                reference=ground_truth,
+            )
+        )
 
         print(f"  [{i + 1}/{len(entries)}] {question[:70]!r}")
         time.sleep(0.3)
@@ -939,7 +1161,11 @@ def ragas_eval(
 
     df = results.to_pandas()
     print("\n📊 RAGAS Results:")
-    print(df[["faithfulness", "answer_relevancy", "context_precision", "context_recall"]].describe().to_string())
+    print(
+        df[["faithfulness", "answer_relevancy", "context_precision", "context_recall"]]
+        .describe()
+        .to_string()
+    )
 
     with open(out, "w") as f:
         json.dump(df.to_dict(orient="records"), f, indent=2, ensure_ascii=False)
@@ -947,17 +1173,20 @@ def ragas_eval(
 
 
 if __name__ == "__main__":
-    fire.Fire({
-        "generate": generate,
-        "add_ground_truth": add_ground_truth,
-        "build_eval_json": build_eval_json,
-        "evaluate": evaluate,
-        "score_recall_at_k": score_recall_at_k,
-        "score_precision_at_k": score_precision_at_k,
-        "score_faithfulness": score_faithfulness,
-        "score_answer_relevancy": score_answer_relevancy,
-        "score_completeness": score_completeness,
-        "run_all": run_all,
-        "ragas_eval": ragas_eval,
-        "retrieve_items_where_faithfulness_below": retrieve_items_where_faithfulness_below,
-    })
+    fire.Fire(
+        {
+            "generate": generate,
+            "add_ground_truth": add_ground_truth,
+            "build_eval_json": build_eval_json,
+            "evaluate": evaluate,
+            "score_recall_at_k": score_recall_at_k,
+            "score_precision_at_k": score_precision_at_k,
+            "score_faithfulness": score_faithfulness,
+            "score_answer_relevancy": score_answer_relevancy,
+            "score_completeness": score_completeness,
+            "run_all": run_all,
+            "run_full_pipeline": run_full_pipeline,
+            "ragas_eval": ragas_eval,
+            "retrieve_items_where_faithfulness_below": retrieve_items_where_faithfulness_below,
+        }
+    )
