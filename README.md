@@ -14,7 +14,7 @@ uv sync
 
 docker compose up vespa -d
 
-uv run python vespa_utils.py deploy_app ./my-vespa-app
+uv run python backend/vespa_utils.py deploy_app ./my-vespa-app
 
 # Wait for Vespa to start running, about 30 seconds, then run the following command to feed the documents
 
