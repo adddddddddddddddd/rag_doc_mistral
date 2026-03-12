@@ -91,6 +91,51 @@ Adding HYDE did not improved significantly enough the results to integrate it
 - Recall@1 (hybrid): 0.557
 
 Changing the judge to magistral-small actually gives us a faithfullness close to 1 (0.95), which is very good indeed
+### How to launch expariments
+
+Phase 1a — generate:          sample chunks from Vespa, generate one question per chunk, save to <eval_dataset_name>.json with --out flag.
+
+Phase 1b — add_ground_truth:  backfill a ground_truth_answer per entry (separate loop, resume-safe).
+
+Phase 2a — build_eval_json:        for each entry embed query → retrieve → generate answer, save rich intermediate JSON for downstream scorers.
+
+Phase 2a (batch) — build_eval_json_batch: same as build_eval_json but uses Mistral Batch API
+
+Phase 2b - score_recall/score_precision@k : take the eval json file data to compute recall and precision
+
+Phase 2c — score_faithfulness:     LLM judge — break RAG answer into claims, check eachclaim is supported by the retrieved contexts.
+
+Phase 2c (batch) — score_faithfulness_batch: same as score_faithfulness but via two sequential batch jobs (claim extraction + support check). Can also be split: batch_extract_claims → batch_check_support.
+
+
+Phase 2d — score_answer_relevancy: LLM judge — float score for how well the answer addresses the question.
+
+Phase 2e — score_completeness:     LLM judge — extract key facts from ground_truth_body, check how many are covered in the RAG answer.
+
+run_full_pipeline:                  generate → add_ground_truth → run_all (end-to-end).
+
+run_full_pipeline
+
+Usage:
+
+```bash
+Usage:
+    uv run python -m evaluation.evaluate generate --samples 200 --out eval_dataset.json
+    uv run python -m evaluation.evaluate add_ground_truth --dataset eval_dataset.json --model mistral-large-latest --out eval_dataset_with_gt.json
+    uv run python -m evaluation.evaluate build_eval_json --dataset eval_dataset.json --top 5 --mode hybrid
+    uv run python -m evaluation.evaluate build_eval_json_batch --dataset eval_dataset.json --top 5 --mode hybrid
+    uv run python -m evaluation.evaluate score_recall_at_k --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_precision_at_k --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_faithfulness --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_faithfulness_batch --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate batch_extract_claims --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate batch_check_support --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_answer_relevancy --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_completeness --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate run_all --dataset eval_dataset.json --top 5 --mode hybrid --samples 50
+    uv run python -m evaluation.evaluate run_full_pipeline --samples 200 --top 5 --mode hybrid
+```
+
 
 ## Conclusion
 
