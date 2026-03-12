@@ -16,11 +16,15 @@ docker compose up vespa -d
 
 uv run python backend/vespa_utils.py deploy_app ./my-vespa-app
 
-# Wait for Vespa to start running, about 30 seconds, then run the following command to feed the documents
+# Wait for Vespa to start running, about 30 seconds.
+# While waiting, create a .env file and add it you MISTRAL_API_KEY
+#then run the following command to feed the documents
 
 cd backend
 
+# Make sure you have correctly clone the sub-repo of mistral docs api -
 uv run python feed.py --include_folders=["getting_started", "capabilities", "agents", "deployment", "mistral-vibe", "deprecated"]
+
 
 ```
 
