@@ -12,11 +12,20 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sections, setSections] = useState<string[]>([]);
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/sections")
+      .then((res) => res.json())
+      .then((data) => setSections(data.sections))
+      .catch(() => {});
+  }, []);
 
   async function sendMessage() {
     const query = input.trim();
@@ -28,9 +37,10 @@ export default function Home() {
 
     try {
       const params = new URLSearchParams({ query, top: "5", mode: "hybrid" });
-      const res = await fetch(`http://localhost:8000/rag?${params}`, {
-        method: "POST",
-      });
+      const url = selectedSection
+        ? `http://localhost:8000/rag/section/${encodeURIComponent(selectedSection)}?${params}`
+        : `http://localhost:8000/rag?${params}`;
+      const res = await fetch(url, { method: "POST" });
 
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
@@ -63,7 +73,10 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-zinc-950 text-zinc-100">
       {/* Header */}
       <header className="flex items-center justify-center px-6 py-4 border-b border-zinc-800">
-        <h1 className="text-lg font-semibold tracking-tight">RAG Chatbot</h1>
+        <div className="flex items-center gap-2">
+          <img src="/docs.png" alt="Mistral Docs" className="h-8 w-8" />
+          <span className="text-lg font-semibold tracking-tight">Docs</span>
+        </div>
       </header>
 
       {/* Messages */}
@@ -83,7 +96,7 @@ export default function Home() {
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-blue-600 text-white rounded-br-sm"
+                    ? "bg-orange-500 text-white rounded-br-sm"
                     : "bg-zinc-800 text-zinc-100 rounded-bl-sm"
                 }`}
               >
@@ -130,22 +143,38 @@ export default function Home() {
 
       {/* Input */}
       <footer className="px-4 pb-6 pt-2 border-t border-zinc-800">
-        <div className="max-w-2xl mx-auto flex gap-2 items-end">
-          <textarea
-            className="flex-1 resize-none rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-600 max-h-40"
-            rows={1}
-            placeholder="Ask a question... (Enter to send, Shift+Enter for newline)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Send
-          </button>
+        <div className="max-w-2xl mx-auto flex flex-col gap-2">
+          {sections.length > 0 && (
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="self-start rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">All sections</option>
+              {sections.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex gap-2 items-end">
+            <textarea
+              className="flex-1 resize-none rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 max-h-40"
+              rows={1}
+              placeholder="Ask a question... (Enter to send, Shift+Enter for newline)"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || loading}
+              className="rounded-xl bg-orange-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Send
+            </button>
+          </div>
         </div>
       </footer>
     </div>

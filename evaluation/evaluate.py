@@ -28,22 +28,23 @@ Phase 3  — ragas_eval:             full RAGAS scoring (Faithfulness, AnswerRel
                                     ContextPrecision, ContextRecall).
 
 Usage:
-    uv run python evaluate.py generate --samples 200 --out eval_dataset.json
-    uv run python evaluate.py add_ground_truth --dataset eval_dataset.json --model mistral-large-latest --out eval_dataset_with_gt.json
-    uv run python evaluate.py build_eval_json --dataset eval_dataset.json --top 5 --mode hybrid
-    uv run python evaluate.py evaluate --dataset eval_dataset.json --top 5 --mode hybrid
-    uv run python evaluate.py score_recall_at_k --intermediate eval_intermediate_top5_hybrid.json
-    uv run python evaluate.py score_precision_at_k --intermediate eval_intermediate_top5_hybrid.json
-    uv run python evaluate.py score_faithfulness --intermediate eval_intermediate_top5_hybrid.json
-    uv run python evaluate.py score_answer_relevancy --intermediate eval_intermediate_top5_hybrid.json
-    uv run python evaluate.py score_completeness --intermediate eval_intermediate_top5_hybrid.json
-    uv run python evaluate.py run_all --dataset eval_dataset.json --top 5 --mode hybrid --samples 50
-    uv run python evaluate.py ragas_eval --dataset eval_dataset.json --top 5 --mode hybrid --samples 50
+    uv run python -m evaluation.evaluate generate --samples 200 --out eval_dataset.json
+    uv run python -m evaluation.evaluate add_ground_truth --dataset eval_dataset.json --model mistral-large-latest --out eval_dataset_with_gt.json
+    uv run python -m evaluation.evaluate build_eval_json --dataset eval_dataset.json --top 5 --mode hybrid
+    uv run python -m evaluation.evaluate evaluate --dataset eval_dataset.json --top 5 --mode hybrid
+    uv run python -m evaluation.evaluate score_recall_at_k --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_precision_at_k --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_faithfulness --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_answer_relevancy --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate score_completeness --intermediate eval_intermediate_top5_hybrid.json
+    uv run python -m evaluation.evaluate run_all --dataset eval_dataset.json --top 5 --mode hybrid --samples 50
+    uv run python -m evaluation.evaluate ragas_eval --dataset eval_dataset.json --top 5 --mode hybrid --samples 50
 """
 
 import json
 import os
 import re
+import tempfile
 import time
 import urllib.request
 import urllib.error
@@ -51,15 +52,15 @@ import fire
 from mistralai import Mistral
 from dotenv import load_dotenv
 
-from embedder import embed_query
-from vespa_utils import VESPA_URL, NAMESPACE, DOC_TYPE, search
-from rag import SYSTEM_PROMPT, rag_from_hits
+from backend.embedder import embed_query
+from backend.vespa_utils import VESPA_URL, NAMESPACE, DOC_TYPE, search
+from backend.rag import SYSTEM_PROMPT, rag_from_hits, generate_hypothetical_answer
 
 load_dotenv()
 
 EVAL_MODEL = "mistral-large-latest"
 FAITHFULNESS_EVALUATION_MODEL = "magistral-small-2509"
-DEFAULT_DATASET = "eval_dataset.json"
+DEFAULT_DATASET = "eval_dataset_hyde.json"
 
 QUESTION_PROMPT = """You are creating an evaluation dataset for a RAG system.
 Given the documentation chunk below, write exactly ONE question that:
@@ -329,6 +330,7 @@ def build_eval_json(
     samples: int = None,
     out: str = None,
     delay: float = 0.3,
+    hyde: bool = False,
 ) -> None:
     """
     For each entry: embed query → retrieve top-k chunks from Vespa → generate RAG answer.
@@ -345,8 +347,9 @@ def build_eval_json(
         top:     Number of chunks to retrieve per query (default: 5)
         mode:    Retrieval mode: 'semantic' or 'hybrid' (default: hybrid)
         samples: Limit to first N entries (default: all)
-        out:     Output file path (default: eval_intermediate_top{top}_{mode}.json)
+        out:     Output file path (default: eval_intermediate_top{top}_{mode}[_hyde].json)
         delay:   Seconds between Mistral API calls (default: 0.3)
+        hyde:    Use Hypothetical Document Embedding (HyDE) for retrieval (default: False)
     """
     if not os.path.exists(dataset):
         raise FileNotFoundError(
@@ -354,7 +357,8 @@ def build_eval_json(
         )
 
     if out is None:
-        out = f"eval_intermediate_top{top}_{mode}.json"
+        suffix = "_hyde" if hyde else ""
+        out = f"eval_intermediate_top{top}_{mode}{suffix}.json"
 
     with open(dataset) as f:
         entries = json.load(f)
@@ -377,8 +381,12 @@ def build_eval_json(
     for i, entry in enumerate(entries):
         question = entry["question"]
 
-        # 1. Embed + retrieve
-        query_vec = embed_query(question)
+        # 1. Embed + retrieve (optionally using HyDE)
+        if hyde:
+            hypothetical = generate_hypothetical_answer(question)
+            query_vec = embed_query(hypothetical)
+        else:
+            query_vec = embed_query(question)
         hits = search(query_vec, top_k=top, rank_profile=mode)
 
         # 2. Generate RAG answer from the retrieved hits
@@ -426,6 +434,209 @@ def build_eval_json(
             print(f"  [{i + 1}/{len(entries)}] recall={recall} | {question[:70]!r}")
 
         time.sleep(delay)
+
+    recall_at_k = (
+        sum(r["recall_at_k"] for r in records) / len(records) if records else 0.0
+    )
+    print(f"\n✅ Saved {len(records)} records to {out!r}")
+    print(f"   Recall@{top} ({mode}): {recall_at_k:.3f}")
+
+
+# ─── Phase 2b (batch): build_eval_json_batch ─────────────────────────────────
+
+
+def build_eval_json_batch(
+    dataset: str = DEFAULT_DATASET,
+    top: int = 5,
+    mode: str = "hybrid",
+    samples: int = None,
+    out: str = None,
+    hyde: bool = False,
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> None:
+    """
+    Same as build_eval_json but generates RAG answers via the Mistral Batch API
+    (~50% cheaper, async) instead of sequential chat.complete calls.
+
+    Phase 1 (sequential): embed each query + retrieve top-k hits from Vespa.
+    Phase 2 (batch):      submit all RAG answer generations as one batch job,
+                          poll until complete, download results.
+    Phase 3:              assemble records, compute recall_at_k, save.
+
+    Resume-safe: entries already present in the output file are skipped entirely.
+
+    Args:
+        dataset:       Path to eval dataset JSON (default: eval_dataset.json)
+        top:           Number of chunks to retrieve per query (default: 5)
+        mode:          Retrieval mode: 'semantic' or 'hybrid' (default: hybrid)
+        samples:       Limit to first N entries (default: all)
+        out:           Output file path (default: eval_intermediate_top{top}_{mode}[_hyde].json)
+        hyde:          Use HyDE for retrieval — hypothetical answer generated sequentially
+                       before embedding (default: False)
+        poll_interval: Seconds between batch-status polls (default: 30)
+        cleanup:       Delete temporary JSONL files and uploaded Mistral files when done
+    """
+    if not os.path.exists(dataset):
+        raise FileNotFoundError(
+            f"Dataset not found: {dataset!r}. Run 'generate' first."
+        )
+
+    if out is None:
+        suffix = "_hyde" if hyde else ""
+        out = f"eval_intermediate_top{top}_{mode}{suffix}.json"
+
+    with open(dataset) as f:
+        entries = json.load(f)
+
+    if samples:
+        entries = entries[:samples]
+
+    # Resume: skip entries already in the output file
+    done_ids: set[str] = set()
+    records: list[dict] = []
+    if os.path.exists(out):
+        with open(out) as f:
+            records = json.load(f)
+        done_ids = {r["ground_truth_chunk_id"] for r in records}
+        entries = [e for e in entries if e["chunk_id"] not in done_ids]
+        print(f"  Resuming — {len(done_ids)} already done, {len(entries)} remaining")
+
+    if not entries:
+        print("✅ Nothing to do — all entries already processed.")
+        return
+
+    print(f"🔍 build_eval_json (batch) | {len(entries)} entries | top={top} | mode={mode}\n")
+
+    # ── Phase 1: embed + retrieve ─────────────────────────────────────────────
+    print("📡 Phase 1/2: embedding queries and retrieving from Vespa...")
+    # Maps chunk_id → {"hits": [...], "entry": {...}}
+    retrieval: dict[str, dict] = {}
+    for i, entry in enumerate(entries):
+        question = entry["question"]
+        if hyde:
+            hypothetical = generate_hypothetical_answer(question)
+            query_vec = embed_query(hypothetical)
+        else:
+            query_vec = embed_query(question)
+        hits = search(query_vec, top_k=top, rank_profile=mode)
+        retrieval[entry["chunk_id"]] = {"hits": hits, "entry": entry}
+        if (i + 1) % 20 == 0 or (i + 1) == len(entries):
+            print(f"  [{i + 1}/{len(entries)}] retrieved")
+
+    # ── Phase 2: batch RAG generation ────────────────────────────────────────
+    print("\n📤 Phase 2/2: submitting RAG generation batch job...")
+    from backend.rag import build_context, RAG_MODEL, SYSTEM_PROMPT as RAG_SYSTEM_PROMPT
+
+    rag_requests = []
+    for cid, data in retrieval.items():
+        hits = data["hits"]
+        question = data["entry"]["question"]
+        if not hits:
+            continue
+        context = build_context(hits)
+        rag_requests.append(
+            {
+                "custom_id": cid,
+                "body": {
+                    "model": RAG_MODEL,
+                    "messages": [
+                        {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                        {
+                            "role": "user",
+                            "content": f"Documentation excerpts:\n\n{context}\n\n---\n\nQuestion: {question}",
+                        },
+                    ],
+                    "temperature": 0.0,
+                },
+            }
+        )
+
+    client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
+    file_obj = None
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, prefix="build_eval_rag_"
+    ) as tmp:
+        tmp.write("\n".join(json.dumps(r) for r in rag_requests))
+        tmp_path = tmp.name
+
+    try:
+        with open(tmp_path, "rb") as f:
+            file_obj = client.files.upload(
+                file={"file_name": os.path.basename(tmp_path), "content": f},
+                purpose="batch",
+            )
+
+        job = client.batch.jobs.create(
+            input_files=[file_obj.id],
+            model=RAG_MODEL,
+            endpoint="/v1/chat/completions",
+            metadata={"task": "build_eval_json", "mode": mode, "top": str(top)},
+        )
+        print(f"  Job ID: {job.id} — polling every {poll_interval}s...")
+        job = _batch_poll(client, job, poll_interval)
+
+        if job.status != "SUCCESS":
+            raise RuntimeError(f"RAG generation batch failed with status: {job.status}")
+
+        result_bytes = client.files.download(file_id=job.output_file).read()
+        rag_by_id: dict[str, str] = {}
+        for line in result_bytes.decode("utf-8").strip().split("\n"):
+            if not line:
+                continue
+            item = json.loads(line)
+            cid = item["custom_id"]
+            rag_by_id[cid] = (
+                item["response"]["body"]["choices"][0]["message"]["content"].strip()
+            )
+        print(f"  ✓ RAG answers received for {len(rag_by_id)} entries")
+
+    finally:
+        if cleanup:
+            os.unlink(tmp_path)
+            if file_obj is not None:
+                try:
+                    client.files.delete(file_id=file_obj.id)
+                except Exception:
+                    pass
+
+    # ── Phase 3: assemble records ─────────────────────────────────────────────
+    for cid, data in retrieval.items():
+        entry = data["entry"]
+        hits = data["hits"]
+        rag_answer = rag_by_id.get(cid, "No relevant documentation found for your query.")
+        retrieved_ids = [h["id"] for h in hits]
+        recall = entry["chunk_id"] in retrieved_ids
+
+        records.append(
+            {
+                "question": entry["question"],
+                "ground_truth_answer": entry.get("ground_truth_answer"),
+                "ground_truth_chunk_id": entry["chunk_id"],
+                "ground_truth_source_file": entry["source_file"],
+                "ground_truth_heading": entry["heading"],
+                "ground_truth_body": entry["body"],
+                "retrieved_hits": [
+                    {
+                        "id": h["id"],
+                        "heading": h["heading"],
+                        "body": h["body"],
+                        "source_file": h["source_file"],
+                        "relevance": h.get("relevance"),
+                    }
+                    for h in hits
+                ],
+                "retrieved_ids": retrieved_ids,
+                "rag_answer": rag_answer,
+                "recall_at_k": recall,
+                "top_k": top,
+                "mode": mode,
+            }
+        )
+
+    with open(out, "w") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
 
     recall_at_k = (
         sum(r["recall_at_k"] for r in records) / len(records) if records else 0.0
@@ -728,6 +939,403 @@ def score_faithfulness(
     scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
     print(
         f"\n✅ Faithfulness scored. Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
+    )
+
+
+# ─── Phase 2c (batch): score_faithfulness_batch ──────────────────────────────
+
+_BATCH_TERMINAL = {"SUCCESS", "FAILED", "CANCELLED", "TIMEOUT_REACHED", "EXPIRED"}
+
+
+def _batch_poll(client: Mistral, job, poll_interval: int):
+    """Poll a batch job until it reaches a terminal state, printing progress."""
+    while job.status not in _BATCH_TERMINAL:
+        time.sleep(poll_interval)
+        job = client.batch.jobs.get(job_id=job.id)
+        print(
+            f"  Status: {job.status} | "
+            f"completed: {job.completed_requests}/{job.total_requests}"
+        )
+    return job
+
+
+def _batch_extract_claims(
+    client: Mistral,
+    to_process: list[dict],
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> dict[str, list[str]]:
+    """
+    Batch job 1: extract atomic claims from each RAG answer.
+
+    Submits one request per record, returns a dict mapping
+    ground_truth_chunk_id → list of claim strings.
+    """
+    print("📤 Submitting batch job 1/2: claim extraction...")
+    claims_jsonl = "\n".join(
+        json.dumps(
+            {
+                "custom_id": record["ground_truth_chunk_id"],
+                "body": {
+                    "model": EVAL_MODEL,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": _CLAIMS_PROMPT.format(answer=record["rag_answer"]),
+                        }
+                    ],
+                    "temperature": 0.0,
+                },
+            }
+        )
+        for record in to_process
+    )
+
+    file_obj = None
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, prefix="faith_claims_"
+    ) as tmp:
+        tmp.write(claims_jsonl)
+        tmp_path = tmp.name
+
+    try:
+        with open(tmp_path, "rb") as f:
+            file_obj = client.files.upload(
+                file={"file_name": os.path.basename(tmp_path), "content": f},
+                purpose="batch",
+            )
+
+        job = client.batch.jobs.create(
+            input_files=[file_obj.id],
+            model=EVAL_MODEL,
+            endpoint="/v1/chat/completions",
+            metadata={"task": "faithfulness_claims"},
+        )
+        print(f"  Job ID: {job.id} — polling every {poll_interval}s...")
+        job = _batch_poll(client, job, poll_interval)
+
+        if job.status != "SUCCESS":
+            raise RuntimeError(f"Claim extraction batch failed with status: {job.status}")
+
+        result_bytes = client.files.download(file_id=job.output_file).read()
+        claims_by_id: dict[str, list[str]] = {}
+        for line in result_bytes.decode("utf-8").strip().split("\n"):
+            if not line:
+                continue
+            item = json.loads(line)
+            cid = item["custom_id"]
+            text = item["response"]["body"]["choices"][0]["message"]["content"].strip()
+            if text.startswith("```"):
+                text = "\n".join(text.split("\n")[1:]).rstrip("`").strip()
+            try:
+                parsed = json.loads(text)
+                claims_by_id[cid] = [str(x) for x in parsed] if isinstance(parsed, list) else []
+            except json.JSONDecodeError:
+                claims_by_id[cid] = []
+
+        print(
+            f"  ✓ Claims extracted for {len(claims_by_id)} records "
+            f"({sum(len(v) for v in claims_by_id.values())} total claims)"
+        )
+        return claims_by_id
+
+    finally:
+        if cleanup:
+            os.unlink(tmp_path)
+            if file_obj is not None:
+                try:
+                    client.files.delete(file_id=file_obj.id)
+                except Exception:
+                    pass
+
+
+def _batch_check_support(
+    client: Mistral,
+    to_process: list[dict],
+    claims_by_id: dict[str, list[str]],
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> dict[str, bool]:
+    """
+    Batch job 2: check each claim against the retrieved contexts.
+
+    Submits one request per (record, claim) pair, returns a dict mapping
+    "{chunk_id}___{claim_idx}" → bool (True = supported).
+    """
+    print("\n📤 Submitting batch job 2/2: claim support check...")
+    support_requests = []
+    for record in to_process:
+        cid = record["ground_truth_chunk_id"]
+        claims = claims_by_id.get(cid, [])
+        if not claims:
+            continue
+        contexts = "\n\n---\n\n".join(
+            f"[{j + 1}] {h['heading']}\n{h['body']}"
+            for j, h in enumerate(record["retrieved_hits"])
+        )
+        for claim_idx, claim in enumerate(claims):
+            support_requests.append(
+                {
+                    "custom_id": f"{cid}___{claim_idx}",
+                    "body": {
+                        "model": FAITHFULNESS_EVALUATION_MODEL,
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": _SUPPORT_PROMPT.format(
+                                    contexts=contexts, claim=claim
+                                ),
+                            }
+                        ],
+                        "temperature": 0.0,
+                    },
+                }
+            )
+
+    file_obj = None
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, prefix="faith_support_"
+    ) as tmp:
+        tmp.write("\n".join(json.dumps(r) for r in support_requests))
+        tmp_path = tmp.name
+
+    try:
+        with open(tmp_path, "rb") as f:
+            file_obj = client.files.upload(
+                file={"file_name": os.path.basename(tmp_path), "content": f},
+                purpose="batch",
+            )
+
+        job = client.batch.jobs.create(
+            input_files=[file_obj.id],
+            model=FAITHFULNESS_EVALUATION_MODEL,
+            endpoint="/v1/chat/completions",
+            metadata={"task": "faithfulness_support"},
+        )
+        print(f"  Job ID: {job.id} — polling every {poll_interval}s...")
+        job = _batch_poll(client, job, poll_interval)
+
+        if job.status != "SUCCESS":
+            raise RuntimeError(f"Support check batch failed with status: {job.status}")
+
+        result_bytes = client.files.download(file_id=job.output_file).read()
+        support_by_key: dict[str, bool] = {}
+        for line in result_bytes.decode("utf-8").strip().split("\n"):
+            if not line:
+                continue
+            item = json.loads(line)
+            key = item["custom_id"]
+            content = item["response"]["body"]["choices"][0]["message"]["content"]
+            # Reasoning models return content as a list of blocks
+            if isinstance(content, list):
+                text = " ".join(
+                    c.get("text", "") for c in content if c.get("type") == "text"
+                )
+            else:
+                text = str(content)
+            support_by_key[key] = text.strip().lower().startswith("yes")
+
+        return support_by_key
+
+    finally:
+        if cleanup:
+            os.unlink(tmp_path)
+            if file_obj is not None:
+                try:
+                    client.files.delete(file_id=file_obj.id)
+                except Exception:
+                    pass
+
+
+def score_faithfulness_batch(
+    intermediate: str = "eval_intermediate_top5_hybrid.json",
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> None:
+    """
+    Score faithfulness using the Mistral Batch API (~50% cheaper, async).
+
+    Orchestrates two sequential batch jobs via _batch_extract_claims and
+    _batch_check_support, then writes scores back to the intermediate file.
+    Resume-safe (skips already-scored records).
+
+    Args:
+        intermediate:  Path to the intermediate eval JSON (output of build_eval_json)
+        poll_interval: Seconds between batch-status polls (default: 30)
+        cleanup:       Delete temporary JSONL files and uploaded Mistral files when done
+    """
+    if not os.path.exists(intermediate):
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
+
+    with open(intermediate) as f:
+        records = json.load(f)
+
+    to_process = [r for r in records if "faithfulness" not in r]
+    done = len(records) - len(to_process)
+    print(
+        f"🔍 Scoring faithfulness (batch) | {len(to_process)} to process ({done} already done)\n"
+    )
+
+    if not to_process:
+        scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
+        print(f"✅ All done. Mean faithfulness: {sum(scored) / len(scored):.3f}")
+        return
+
+    client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
+    index = {r["ground_truth_chunk_id"]: r for r in records}
+
+    claims_by_id = _batch_extract_claims(client, to_process, poll_interval, cleanup)
+    support_by_key = _batch_check_support(client, to_process, claims_by_id, poll_interval, cleanup)
+
+    _apply_faithfulness_scores(records, index, to_process, claims_by_id, support_by_key)
+
+    with open(intermediate, "w") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+
+    scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
+    print(
+        f"\n✅ Faithfulness scored (batch). "
+        f"Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
+    )
+
+
+def _apply_faithfulness_scores(
+    records: list[dict],
+    index: dict,
+    to_process: list[dict],
+    claims_by_id: dict[str, list[str]],
+    support_by_key: dict[str, bool],
+) -> None:
+    """Write faithfulness scores and claim details into records in-place."""
+    for record in to_process:
+        cid = record["ground_truth_chunk_id"]
+        claims = claims_by_id.get(cid, [])
+        if not claims:
+            index[cid]["faithfulness"] = None
+            index[cid]["faithfulness_claims"] = []
+            continue
+
+        claim_details = []
+        supported = 0
+        for claim_idx, claim in enumerate(claims):
+            key = f"{cid}___{claim_idx}"
+            yn = support_by_key.get(key, False)
+            claim_details.append({"claim": claim, "supported": yn})
+            supported += int(yn)
+
+        score = supported / len(claims)
+        index[cid]["faithfulness"] = score
+        index[cid]["faithfulness_claims"] = claim_details
+
+
+def batch_extract_claims(
+    intermediate: str = "eval_intermediate_top5_hybrid.json",
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> None:
+    """
+    Run batch job 1 only: extract atomic claims from each RAG answer and save
+    them to the intermediate file under the '_batch_claims' key.
+
+    Run batch_check_support afterwards to complete faithfulness scoring.
+
+    Args:
+        intermediate:  Path to the intermediate eval JSON (output of build_eval_json)
+        poll_interval: Seconds between batch-status polls (default: 30)
+        cleanup:       Delete temporary JSONL files and uploaded Mistral files when done
+    """
+    if not os.path.exists(intermediate):
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
+
+    with open(intermediate) as f:
+        records = json.load(f)
+
+    to_process = [r for r in records if "faithfulness" not in r]
+    done = len(records) - len(to_process)
+    print(
+        f"📋 Claim extraction | {len(to_process)} to extract "
+        f"({done} already fully scored)\n"
+    )
+
+    if not to_process:
+        print("✅ All records already have faithfulness scores.")
+        return
+
+    client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
+    index = {r["ground_truth_chunk_id"]: r for r in records}
+
+    claims_by_id = _batch_extract_claims(client, to_process, poll_interval, cleanup)
+
+    for cid, claims in claims_by_id.items():
+        index[cid]["faithfulness_claims"] = [{"claim": c, "supported": None} for c in claims]
+
+    with open(intermediate, "w") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+
+    print(f"\n✅ Claims saved to {intermediate!r}. Run 'batch_check_support' next.")
+
+
+def batch_check_support(
+    intermediate: str = "eval_intermediate_top5_hybrid.json",
+    poll_interval: int = 30,
+    cleanup: bool = True,
+) -> None:
+    """
+    Run batch job 2 only: check each claim (stored under '_batch_claims') against
+    retrieved contexts, compute faithfulness scores, and update the intermediate file.
+
+    Requires batch_extract_claims to have been run first.
+
+    Args:
+        intermediate:  Path to the intermediate eval JSON (output of build_eval_json)
+        poll_interval: Seconds between batch-status polls (default: 30)
+        cleanup:       Delete temporary JSONL files and uploaded Mistral files when done
+    """
+    if not os.path.exists(intermediate):
+        raise FileNotFoundError(
+            f"Intermediate file not found: {intermediate!r}. Run 'build_eval_json' first."
+        )
+
+    with open(intermediate) as f:
+        records = json.load(f)
+
+    to_process = [
+        r for r in records
+        if "faithfulness_claims" in r and "faithfulness" not in r
+    ]
+    print(
+        f"🔍 Support check | {len(to_process)} records to check\n"
+    )
+
+    if not to_process:
+        if not any("faithfulness_claims" in r for r in records):
+            print("⚠  No 'faithfulness_claims' found. Run 'batch_extract_claims' first.")
+        else:
+            print("✅ All records already have faithfulness scores.")
+        return
+
+    client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
+    index = {r["ground_truth_chunk_id"]: r for r in records}
+
+    claims_by_id = {
+        r["ground_truth_chunk_id"]: [c["claim"] for c in r["faithfulness_claims"]]
+        for r in to_process
+    }
+    support_by_key = _batch_check_support(client, to_process, claims_by_id, poll_interval, cleanup)
+
+    _apply_faithfulness_scores(records, index, to_process, claims_by_id, support_by_key)
+
+    with open(intermediate, "w") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+
+    scored = [r["faithfulness"] for r in records if r.get("faithfulness") is not None]
+    print(
+        f"\n✅ Faithfulness scored (batch). "
+        f"Mean: {sum(scored) / len(scored):.3f} ({len(scored)} records)"
     )
 
 
@@ -1178,10 +1786,14 @@ if __name__ == "__main__":
             "generate": generate,
             "add_ground_truth": add_ground_truth,
             "build_eval_json": build_eval_json,
+            "build_eval_json_batch": build_eval_json_batch,
             "evaluate": evaluate,
             "score_recall_at_k": score_recall_at_k,
             "score_precision_at_k": score_precision_at_k,
             "score_faithfulness": score_faithfulness,
+            "score_faithfulness_batch": score_faithfulness_batch,
+            "batch_extract_claims": batch_extract_claims,
+            "batch_check_support": batch_check_support,
             "score_answer_relevancy": score_answer_relevancy,
             "score_completeness": score_completeness,
             "run_all": run_all,

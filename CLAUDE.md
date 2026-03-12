@@ -13,14 +13,14 @@ RAG (Retrieval-Augmented Generation) system for querying markdown documentation.
 Uses `uv` as the package manager with Python 3.13.
 
 ```bash
-uv run python main.py                              # Run full indexing pipeline
-uv run python main.py --include_folders="agents"  # Index specific folders only
-uv run python main.py --exclude_folders="old"     # Exclude folders
+uv run python -m backend.feed                              # Run full indexing pipeline
+uv run python -m backend.feed --include_folders="agents"  # Index specific folders only
+uv run python -m backend.feed --exclude_folders="old"     # Exclude folders
 
-uv run python rag.py "your question"              # CLI query (hybrid mode)
-uv run python rag.py "question" --top 10 --mode semantic
+uv run python -m backend.rag "your question"              # CLI query (hybrid mode)
+uv run python -m backend.rag "question" --top 10 --mode semantic
 
-uv run python server.py                           # Start FastAPI on http://0.0.0.0:8000
+uv run python -m backend.server                           # Start FastAPI on http://0.0.0.0:8000
 ```
 
 ### Frontend
@@ -55,13 +55,14 @@ User query (chat_interface → server.py /rag)
 
 ### Key Components
 
-- **[main.py](main.py)**: Indexing pipeline orchestrator. Discovers MD files, chunks, embeds, deploys Vespa schema if needed, feeds docs.
-- **[chunker.py](chunker.py)**: Recursive hierarchical splitting (H2→H3→H4→paragraphs→sentences). Protects code blocks from splitting. Min 50 / max 800 tokens, hard cap 8192. Merges undersized chunks.
-- **[embedder.py](embedder.py)**: Mistral embedding with batch size 32, retry logic (3 attempts, 2s delay).
-- **[vespa_utils.py](vespa_utils.py)**: Deploy schema, feed documents, query with `semantic` or `hybrid` ranking.
-- **[rag.py](rag.py)**: Embeds query, retrieves top-k from Vespa, calls `mistral-large-latest` with context.
-- **[server.py](server.py)**: FastAPI exposing `GET /health` and `POST /rag` (params: `query`, `top=5`, `mode=hybrid`). CORS allows localhost:3000.
+- **[backend/feed.py](backend/feed.py)**: Indexing pipeline orchestrator. Discovers MD files, chunks, embeds, deploys Vespa schema if needed, feeds docs.
+- **[backend/chunker.py](backend/chunker.py)**: Recursive hierarchical splitting (H2→H3→H4→paragraphs→sentences). Protects code blocks from splitting. Min 50 / max 800 tokens, hard cap 8192. Merges undersized chunks.
+- **[backend/embedder.py](backend/embedder.py)**: Mistral embedding with batch size 32, retry logic (3 attempts, 2s delay).
+- **[backend/vespa_utils.py](backend/vespa_utils.py)**: Deploy schema, feed documents, query with `semantic` or `hybrid` ranking.
+- **[backend/rag.py](backend/rag.py)**: Embeds query, retrieves top-k from Vespa, calls `mistral-large-latest` with context.
+- **[backend/server.py](backend/server.py)**: FastAPI exposing `GET /health` and `POST /rag` (params: `query`, `top=5`, `mode=hybrid`). CORS allows localhost:3000.
 - **[extract_all_md_files.py](extract_all_md_files.py)**: Finds `.md`/`.mdx` in `platform-docs-public/public/` with include/exclude folder filters.
+- **[evaluation/evaluate.py](evaluation/evaluate.py)**: RAG evaluation pipeline (dataset generation, recall, faithfulness, answer relevancy, completeness).
 
 ### Vespa Schema ([my-vespa-app/schemas/doc.sd](my-vespa-app/schemas/doc.sd))
 
