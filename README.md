@@ -76,17 +76,17 @@ Faithfullness and recall@1 were a little low so I tried to improve it.
 
 Results :
 Deleting the duplicates did not improved the recalls so no need to compute anything else.
-Recall@5 (hybrid): 0.89
-Recall@3 (hybrid): 0.83
-Recall@1 (hybrid): 0.61
+- Recall@5 (hybrid): 0.89
+- Recall@3 (hybrid): 0.83
+- Recall@1 (hybrid): 0.61
 
 
 Adding HYDE did not improved significantly enough the results to integrate it
-Recall@5 (hybrid): 0.89
-Recall@3 (hybrid): 0.80
-Recall@1 (hybrid): 0.557
+- Recall@5 (hybrid): 0.89
+- Recall@3 (hybrid): 0.80
+- Recall@1 (hybrid): 0.557
 
-Changing the judge to mistral-small actually gives us a faithfullness close to 1 (0.95), which is very good indeed
+Changing the judge to magistral-small actually gives us a faithfullness close to 1 (0.95), which is very good indeed
 
 ## Conclusion
 
